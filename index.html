@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lacrosse Bench Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <div id="field">
+      <h2>Field</h2>
+      <div id="goalie" class="player" draggable="false">Ben (Goalie)</div>
+      <div id="field-players" class="dropzone">
+        <!-- Field players will be here -->
+      </div>
+    </div>
+    <div id="bench">
+      <h2>Bench</h2>
+      <div id="bench-players" class="dropzone">
+        <div id="player-callum" class="player" draggable="true">Callum</div>
+        <div id="player-ethan" class="player" draggable="true">Ethan</div>
+        <div id="player-oliver" class="player" draggable="true">Oliver</div>
+        <div id="player-abraham" class="player" draggable="true">Abraham</div>
+        <div id="player-henry" class="player" draggable="true">Henry</div>
+        <div id="player-henryb" class="player" draggable="true">Henry B</div>
+        <div id="player-arlo" class="player" draggable="true">Arlo</div>
+        <div id="player-newkid" class="player" draggable="true">New Kid</div>
+      </div>
+    </div>
+  </div>
+  <div class="container">
+    <div id="controls">
+      <button id="start-timer">Start Timer</button>
+      <div id="timer">10:00</div>
+      <div id="score">
+        <span>Team A: <input type="number" id="score-a" value="0"></span>
+        <span>Team B: <input type="number" id="score-b" value="0"></span>
+      </div>
+      <button id="export-log">Export Log</button>
+    </div>
+    <div id="log">
+      <h2>Activity Log</h2>
+      <ul id="activity-log"></ul>
+    </div>
+  </div>
+  <div id="scoring">
+    <label for="scorer">Who scored?</label>
+    <select id="scorer">
+      <option value="">Select Player</option>
+      <option value="Callum">Callum</option>
+      <option value="Ethan">Ethan</option>
+      <option value="Oliver">Oliver</option>
+      <option value="Abraham">Abraham</option>
+      <option value="Henry">Henry</option>
+      <option value="Henry B">Henry B</option>
+      <option value="Arlo">Arlo</option>
+      <option value="New Kid">New Kid</option>
+    </select>
+    <button id="add-score">Add Score</button>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

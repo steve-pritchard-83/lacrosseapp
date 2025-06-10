@@ -1,0 +1,174 @@
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px;
+  background-color: #1c1c1e;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #f5f5f5;
+}
+
+h1 {
+  margin-bottom: 40px;
+  font-size: 3em;
+  color: #f5f5f5;
+  text-align: center;
+}
+
+.container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 1200px;
+  gap: 20px;
+}
+
+#field, #bench, #controls, #log {
+  width: 48%;
+  background-color: #2c2c2e;
+  border-radius: 15px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5);
+  padding: 30px;
+  margin-bottom: 30px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#field:hover, #bench:hover, #controls:hover, #log:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.7);
+}
+
+#controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#log {
+  width: 100%;
+  margin-top: 20px;
+}
+
+h2 {
+  margin-top: 0;
+}
+
+.dropzone {
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 120px;
+  border: 2px dashed #3a3a3c;
+  border-radius: 8px;
+  padding: 15px;
+  transition: border-color 0.3s ease;
+}
+
+.dropzone:hover {
+  border-color: #ff9500;
+}
+
+.player {
+  background-color: #ff9500;
+  color: white;
+  padding: 12px;
+  margin: 8px;
+  border-radius: 5px;
+  cursor: grab;
+  transition: background-color 10s linear, transform 0.3s ease;
+}
+
+.player.on-field {
+  animation: colorTransition 30s linear forwards;
+}
+
+@keyframes colorTransition {
+  0% { background-color: #28a745; }
+  50% { background-color: #ffc107; }
+  100% { background-color: #dc3545; }
+}
+
+@keyframes flashRedWhite {
+  0%, 100% { background-color: #dc3545; }
+  50% { background-color: #fff; }
+}
+
+.player.red {
+  animation: flashRedWhite 1s infinite;
+}
+
+#controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+#timer {
+  font-size: 2.5em;
+  margin: 15px 0;
+  color: #ff9500;
+}
+
+#score {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 320px;
+  margin-bottom: 25px;
+}
+
+button {
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #ff9500;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+button:hover {
+  background-color: #ffcc00;
+  transform: translateY(-2px);
+}
+
+#activity-log {
+  list-style-type: none;
+  padding: 0;
+}
+
+#activity-log li {
+  display: flex;
+  align-items: center;
+  margin: 5px 0;
+  padding: 5px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+#activity-log li .icon {
+  margin-right: 10px;
+  font-size: 1.2em;
+}
+
+.goal-icon::before {
+  content: '\1F94D'; /* Lacrosse stick icon */
+}
+
+.bench-icon::before {
+  content: '\1F4BA'; /* Bench icon */
+}
+
+.field-icon::before {
+  content: '\1F3C6'; /* Trophy icon representing field */
+}
+
+.widget {
+  cursor: move;
+  margin-bottom: 30px;
+}
+
+.widget.dragging {
+  opacity: 0.5;
+} 
