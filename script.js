@@ -148,43 +148,52 @@ document.addEventListener('DOMContentLoaded', () => {
     fieldPlayers.forEach(player => startPlayerTransition(player));
   }
 
-  function handleDrop(e) {
-    e.preventDefault();
-    const id = e.dataTransfer.getData('text/plain');
-    const draggableElement = document.getElementById(id);
-    const dropzone = e.target.closest('.dropzone');
-    if (dropzone) {
-      if (dropzone.id === 'field-players' && dropzone.children.length >= 4) {
-        alert('Only 4 players are allowed on the field.');
-        return;
-      }
-      dropzone.appendChild(draggableElement);
-      if (dropzone.id === 'field-players') {
-        draggableElement.classList.remove('red');
-        draggableElement.style.transition = 'none';
-        draggableElement.style.backgroundColor = '#28a745';
-        draggableElement.classList.add('on-field');
-        draggableElement.querySelector('.score-button').style.display = 'inline';
-        
-        // If timer is running, start the transition for the new player
-        if (timer) {
-          startPlayerTransition(draggableElement);
-        }
-        
-        if (dropzone.children.length === 4 && !timer) {
-          startCountdownAndTransition();
-        }
-      } else {
-        draggableElement.classList.remove('red', 'on-field');
-        draggableElement.style.transition = 'none';
-        draggableElement.style.backgroundColor = '#28a745';
-        draggableElement.querySelector('.score-button').style.display = 'none';
-      }
-      addLogEntry(`${draggableElement.textContent} moved to ${dropzone.id === 'field-players' ? 'field' : 'bench'}.`, dropzone.id === 'field-players' ? 'field' : 'bench');
-      if (dropzone.id === 'bench-players') {
-        recommendPlayer();
-      }
+  function handlePlayerClick(e) {
+    // Ignore clicks on the score button
+    if (e.target.classList.contains('score-button')) {
+      return;
     }
+
+    const player = e.currentTarget;
+    const isOnField = player.closest('#field-players');
+    const targetZone = isOnField ? benchPlayers : fieldPlayers;
+
+    // Check 4-player limit when moving to field
+    if (!isOnField && fieldPlayers.children.length >= 4) {
+      alert('Only 4 players are allowed on the field.');
+      return;
+    }
+
+    // Move player to target zone
+    targetZone.appendChild(player);
+
+    // Update player styling and state
+    if (!isOnField) {
+      player.classList.remove('red');
+      player.style.transition = 'none';
+      player.style.backgroundColor = '#28a745';
+      player.classList.add('on-field');
+      player.querySelector('.score-button').style.display = 'inline';
+      
+      // If timer is running, start the transition for the new player
+      if (timer) {
+        startPlayerTransition(player);
+      }
+      
+      // Start the game if we now have 4 players on the field
+      if (fieldPlayers.children.length === 4 && !timer) {
+        startCountdownAndTransition();
+      }
+    } else {
+      player.classList.remove('red', 'on-field');
+      player.style.transition = 'none';
+      player.style.backgroundColor = '#28a745';
+      player.querySelector('.score-button').style.display = 'none';
+      recommendPlayer();
+    }
+
+    // Log the movement
+    addLogEntry(`${player.textContent} moved to ${!isOnField ? 'field' : 'bench'}.`, !isOnField ? 'field' : 'bench');
   }
 
   function recommendPlayer() {
@@ -201,6 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll('.player').forEach(player => {
     player.addEventListener('dragstart', handleDragStart);
+    player.addEventListener('click', handlePlayerClick);
   });
 
   document.querySelectorAll('.dropzone').forEach(zone => {
