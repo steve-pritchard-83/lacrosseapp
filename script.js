@@ -8,6 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const activityLog = document.getElementById('activity-log');
   let timer;
   let timeLeft = 600; // 10 minutes in seconds
+  const modal = document.getElementById('how-to-modal');
+  const closeButton = document.querySelector('.close-button');
 
   function updateTimer() {
     const minutes = Math.floor(timeLeft / 60);
@@ -149,4 +151,22 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }, { offset: Number.NEGATIVE_INFINITY }).element;
   }
+
+  function showModal() {
+    modal.style.display = 'block';
+  }
+
+  function closeModal() {
+    modal.style.display = 'none';
+  }
+
+  closeButton.addEventListener('click', closeModal);
+
+  window.addEventListener('click', (event) => {
+    if (event.target === modal) {
+      closeModal();
+    }
+  });
+
+  showModal();
 }); 
