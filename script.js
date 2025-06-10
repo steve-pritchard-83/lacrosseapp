@@ -142,6 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update player styling and state
     if (!isOnField) {
+      // Moving to field
       player.classList.remove('red');
       player.style.transition = 'none';
       player.style.backgroundColor = '#28a745';
@@ -158,10 +159,14 @@ document.addEventListener('DOMContentLoaded', () => {
         startCountdownAndTransition();
       }
     } else {
+      // Moving to bench - reset to green without transitions
       player.classList.remove('red', 'on-field');
       player.style.transition = 'none';
       player.style.backgroundColor = '#28a745';
       player.querySelector('.score-button').style.display = 'none';
+      
+      // Clear any ongoing transitions or timeouts
+      player.style.transition = 'none';
       recommendPlayer();
     }
 
@@ -190,6 +195,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function startPlayerTransition(player) {
+    // Only start transitions for players on the field
+    if (!player.closest('#field-players')) return;
+
     // Start with green and set up transition
     player.style.backgroundColor = '#28a745';
     player.style.transition = 'background-color 15s linear';
@@ -200,13 +208,19 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // After 15 seconds, transition to red
       setTimeout(() => {
-        player.style.backgroundColor = '#dc3545'; // Red
-        
-        // After reaching red (15 more seconds), start flashing
-        setTimeout(() => {
-          player.style.transition = 'none';
-          player.classList.add('red');
-        }, 15000);
+        // Check if player is still on field before continuing transition
+        if (player.closest('#field-players')) {
+          player.style.backgroundColor = '#dc3545'; // Red
+          
+          // After reaching red (15 more seconds), start flashing
+          setTimeout(() => {
+            // Final check if player is still on field
+            if (player.closest('#field-players')) {
+              player.style.transition = 'none';
+              player.classList.add('red');
+            }
+          }, 15000);
+        }
       }, 15000);
     });
   }
@@ -216,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     timer = setInterval(updateTimer, 1000);
     addLogEntry(`${getQuarterName(currentQuarter)} begins`, 'field');
     
-    // Start transitions for all players on field
+    // Start transitions only for players on field
     const fieldPlayers = document.querySelectorAll('#field-players .player');
     fieldPlayers.forEach(player => startPlayerTransition(player));
   }
