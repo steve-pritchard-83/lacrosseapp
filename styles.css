@@ -162,7 +162,7 @@ button:hover {
 }
 
 .field-icon::before {
-  content: '\1F3C6'; /* Trophy icon representing field */
+  content: '\26BD'; /* Soccer ball icon */
 }
 
 .widget {
