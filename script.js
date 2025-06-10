@@ -1,33 +1,47 @@
 document.addEventListener('DOMContentLoaded', () => {
   const fieldPlayers = document.getElementById('field-players');
   const benchPlayers = document.getElementById('bench-players');
-  const timerDisplay = document.getElementById('timer');
-  const startTimerButton = document.getElementById('start-timer');
-  const addScoreButton = document.getElementById('add-score');
-  const scorerSelect = document.getElementById('scorer');
   const activityLog = document.getElementById('activity-log');
+  const pauseButton = document.getElementById('pause-timer');
   let timer;
   let timeLeft = 600; // 10 minutes in seconds
-  const modal = document.getElementById('how-to-modal');
-  const closeButton = document.querySelector('.close-button');
+  let isPaused = false;
+  let currentQuarter = 1;
+
+  function getQuarterName(quarter) {
+    const quarters = {
+      1: '1st Quarter',
+      2: '2nd Quarter',
+      3: '3rd Quarter',
+      4: '4th Quarter'
+    };
+    return quarters[quarter] || '';
+  }
 
   function updateTimer() {
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
-    timerDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-    if (timeLeft > 0) {
+    const timerDisplay = document.getElementById('timer');
+    timerDisplay.textContent = `(${getQuarterName(currentQuarter)} ${minutes}:${seconds < 10 ? '0' : ''}${seconds})`;
+    
+    if (timeLeft > 0 && !isPaused) {
       timeLeft--;
-    } else {
-      clearInterval(timer);
+      if (timeLeft === 0 && currentQuarter < 4) {
+        currentQuarter++;
+        timeLeft = 600; // Reset to 10 minutes for next quarter
+        addLogEntry(`${getQuarterName(currentQuarter)} begins`, 'field');
+      } else if (timeLeft === 0) {
+        clearInterval(timer);
+        addLogEntry('Game finished', 'field');
+      }
     }
   }
 
-  startTimerButton.addEventListener('click', () => {
-    if (timer) {
-      clearInterval(timer);
-    }
-    timer = setInterval(updateTimer, 1000);
-  });
+  function updateTotalGoals() {
+    const totalGoals = document.getElementById('total-goals');
+    const goalCount = document.querySelectorAll('.goal-icon').length;
+    totalGoals.textContent = `(Total Goals: ${goalCount})`;
+  }
 
   function addLogEntry(message, type) {
     const logEntry = document.createElement('li');
@@ -39,17 +53,50 @@ document.addEventListener('DOMContentLoaded', () => {
     activityLog.insertBefore(logEntry, activityLog.firstChild);
   }
 
-  addScoreButton.addEventListener('click', () => {
-    const scorer = scorerSelect.value;
-    if (scorer) {
-      const scoreA = document.getElementById('score-a');
-      scoreA.value = parseInt(scoreA.value) + 1;
-      addLogEntry(`${scorer} scored a goal!`, 'goal');
-      alert(`${scorer} scored a goal!`);
-      scorerSelect.value = '';
-    } else {
-      alert('Please select a player who scored.');
+  function createFirework(x, y) {
+    const firework = document.createElement('div');
+    firework.className = 'firework';
+    firework.style.left = x + 'px';
+    firework.style.top = y + 'px';
+    document.body.appendChild(firework);
+
+    // Create sparks
+    for (let i = 0; i < 12; i++) {
+      const spark = document.createElement('div');
+      spark.className = 'spark';
+      const angle = (i * 30) * Math.PI / 180;
+      const velocity = 50;
+      const vx = Math.cos(angle) * velocity;
+      const vy = Math.sin(angle) * velocity;
+      
+      spark.style.setProperty('--x', `${vx}px`);
+      spark.style.setProperty('--y', `${vy}px`);
+      
+      firework.appendChild(spark);
     }
+
+    // Remove the firework after animation
+    setTimeout(() => {
+      document.body.removeChild(firework);
+    }, 1000);
+  }
+
+  function createRandomFireworks() {
+    const numFireworks = Math.floor(Math.random() * 3) + 2; // 2-4 fireworks
+    for (let i = 0; i < numFireworks; i++) {
+      const x = Math.random() * window.innerWidth;
+      const y = Math.random() * (window.innerHeight * 0.7); // Keep in top 70% of screen
+      setTimeout(() => createFirework(x, y), i * 200); // Stagger the fireworks
+    }
+  }
+
+  document.querySelectorAll('.score-button').forEach(button => {
+    button.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent triggering drag events
+      const playerName = e.target.parentElement.textContent.replace('+', '').trim();
+      addLogEntry(`${playerName} scored a goal!`, 'goal');
+      createRandomFireworks();
+    });
   });
 
   function handleDragStart(e) {
@@ -58,6 +105,38 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
       e.preventDefault();
     }
+  }
+
+  function startPlayerTransition(player) {
+    // Start with green and set up transition
+    player.style.backgroundColor = '#28a745';
+    player.style.transition = 'background-color 15s linear';
+    
+    // Immediately start transition to yellow
+    requestAnimationFrame(() => {
+      player.style.backgroundColor = '#ffc107'; // Yellow
+      
+      // After 15 seconds, transition to red
+      setTimeout(() => {
+        player.style.backgroundColor = '#dc3545'; // Red
+        
+        // After reaching red (15 more seconds), start flashing
+        setTimeout(() => {
+          player.style.transition = 'none';
+          player.classList.add('red');
+        }, 15000);
+      }, 15000);
+    });
+  }
+
+  function startCountdownAndTransition() {
+    // Start the timer
+    timer = setInterval(updateTimer, 1000);
+    addLogEntry(`${getQuarterName(currentQuarter)} begins`, 'field');
+    
+    // Start transitions for all players on field
+    const fieldPlayers = document.querySelectorAll('#field-players .player');
+    fieldPlayers.forEach(player => startPlayerTransition(player));
   }
 
   function handleDrop(e) {
@@ -73,13 +152,24 @@ document.addEventListener('DOMContentLoaded', () => {
       dropzone.appendChild(draggableElement);
       if (dropzone.id === 'field-players') {
         draggableElement.classList.remove('red');
+        draggableElement.style.transition = 'none';
+        draggableElement.style.backgroundColor = '#28a745';
         draggableElement.classList.add('on-field');
-        setTimeout(() => {
-          draggableElement.classList.add('red');
-        }, 30000); // 30 seconds
+        draggableElement.querySelector('.score-button').style.display = 'inline';
+        
+        // If timer is running, start the transition for the new player
+        if (timer) {
+          startPlayerTransition(draggableElement);
+        }
+        
+        if (dropzone.children.length === 4 && !timer) {
+          startCountdownAndTransition();
+        }
       } else {
         draggableElement.classList.remove('red', 'on-field');
-        draggableElement.style.backgroundColor = '#ff9500';
+        draggableElement.style.transition = 'none';
+        draggableElement.style.backgroundColor = '#28a745';
+        draggableElement.querySelector('.score-button').style.display = 'none';
       }
       addLogEntry(`${draggableElement.textContent} moved to ${dropzone.id === 'field-players' ? 'field' : 'bench'}.`, dropzone.id === 'field-players' ? 'field' : 'bench');
       if (dropzone.id === 'bench-players') {
@@ -114,7 +204,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('#activity-log li').forEach(item => {
       logContent += item.textContent + '\n';
     });
-    logContent += `\nFinal Score:\nTeam A: ${document.getElementById('score-a').value}\nTeam B: ${document.getElementById('score-b').value}`;
 
     const blob = new Blob([logContent], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -152,21 +241,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { offset: Number.NEGATIVE_INFINITY }).element;
   }
 
-  function showModal() {
-    modal.style.display = 'block';
-  }
-
-  function closeModal() {
-    modal.style.display = 'none';
-  }
-
-  closeButton.addEventListener('click', closeModal);
-
-  window.addEventListener('click', (event) => {
-    if (event.target === modal) {
-      closeModal();
-    }
+  pauseButton.addEventListener('click', () => {
+    isPaused = !isPaused;
+    pauseButton.textContent = isPaused ? '▶️' : '⏸️';
+    addLogEntry(`Game ${isPaused ? 'paused' : 'resumed'}`, 'field');
   });
-
-  showModal();
 }); 

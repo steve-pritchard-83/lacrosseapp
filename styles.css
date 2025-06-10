@@ -69,32 +69,33 @@ h1 {
 }
 
 .player {
-  background-color: #ff9500;
+  background-color: #28a745;
   color: white;
   padding: 12px;
   margin: 8px;
   border-radius: 5px;
   cursor: grab;
-  transition: background-color 10s linear, transform 0.3s ease;
 }
 
 .player.on-field {
-  animation: colorTransition 30s linear forwards;
+  background-color: #28a745;
 }
 
-@keyframes colorTransition {
-  0% { background-color: #28a745; }
-  50% { background-color: #ffc107; }
-  100% { background-color: #dc3545; }
+.player.transition-active {
+  transition: background-color 15s linear;
+}
+
+.player.yellow {
+  background-color: #ffc107;
+}
+
+.player.red {
+  animation: flashRedWhite 1s infinite;
 }
 
 @keyframes flashRedWhite {
   0%, 100% { background-color: #dc3545; }
   50% { background-color: #fff; }
-}
-
-.player.red {
-  animation: flashRedWhite 1s infinite;
 }
 
 #controls {
@@ -105,7 +106,7 @@ h1 {
 }
 
 #timer {
-  font-size: 2.5em;
+  font-size: inherit;
   margin: 15px 0;
   color: #ff9500;
 }
@@ -162,7 +163,7 @@ button:hover {
 }
 
 .field-icon::before {
-  content: '\26BD'; /* Soccer ball icon */
+  content: '\1F3C3'; /* Running person icon */
 }
 
 .widget {
@@ -210,4 +211,235 @@ button:hover {
   color: #ffcc00;
   text-decoration: none;
   cursor: pointer;
+}
+
+.score-button {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2em;
+}
+
+.player.on-field .score-button {
+  display: inline;
+}
+
+.score-button::before {
+  content: '\1F945'; /* Soccer goal icon */
+}
+
+#pause-timer {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2em;
+  padding: 0 5px;
+  vertical-align: middle;
+}
+
+.firework {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.firework::before, .firework::after {
+  content: '';
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  box-shadow: 
+    0 0 3px 1px #fff,
+    0 0 6px 2px #ff0,
+    0 0 9px 3px #f90;
+  animation: explode 1s ease-out forwards;
+}
+
+@keyframes explode {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(30);
+    opacity: 0;
+  }
+}
+
+.spark {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: #ff0;
+  border-radius: 50%;
+  animation: spark 0.5s linear forwards;
+}
+
+@keyframes spark {
+  0% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--x, 50px), var(--y, 50px));
+    opacity: 0;
+  }
+}
+
+/* S23 Ultra Landscape Mode */
+@media only screen 
+and (min-width: 2800px) 
+and (max-width: 3100px) 
+and (min-height: 1400px) 
+and (max-height: 1500px) 
+and (orientation: landscape) {
+  body {
+    padding: 20px;
+    max-width: 3088px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 2em;
+    margin-bottom: 20px;
+  }
+
+  .container {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  #field, #bench {
+    width: 45%;
+    min-height: 600px;
+    margin-bottom: 15px;
+  }
+
+  #log {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    max-height: 200px;
+    overflow-y: auto;
+    background-color: #2c2c2e;
+    border-radius: 15px;
+    padding: 15px;
+    margin: 0;
+  }
+
+  .player {
+    padding: 8px;
+    margin: 6px;
+    font-size: 0.9em;
+  }
+
+  .dropzone {
+    min-height: 80px;
+    padding: 10px;
+  }
+
+  #timer {
+    font-size: 0.9em;
+  }
+
+  #pause-timer {
+    font-size: 1em;
+  }
+
+  #activity-log {
+    font-size: 0.9em;
+  }
+
+  .score-button {
+    font-size: 1em;
+    padding: 3px;
+  }
+}
+
+/* Samsung S23 Ultra in Landscape Mode */
+@supports (-webkit-appearance: none) and (orientation: landscape) {
+  @media only screen and (min-width: 1440px) and (max-width: 3088px) {
+    body {
+      padding: 10px;
+      max-width: 100%;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: row;
+      gap: 10px;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    #field, #bench {
+      width: 48%;
+      height: calc(100vh - 250px);
+      margin-bottom: 10px;
+      overflow-y: auto;
+    }
+
+    #log {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 200px;
+      background-color: #2c2c2e;
+      border-radius: 15px 15px 0 0;
+      padding: 15px;
+      margin: 0;
+      z-index: 1000;
+    }
+
+    #activity-log {
+      max-height: 150px;
+      overflow-y: auto;
+      padding-bottom: 10px;
+    }
+
+    .player {
+      padding: 15px;
+      margin: 5px;
+      font-size: 1.1em;
+    }
+
+    .dropzone {
+      min-height: 100px;
+      padding: 10px;
+    }
+
+    h2 {
+      font-size: 1.3em;
+      margin: 10px 0;
+    }
+
+    #timer {
+      font-size: 1.2em;
+    }
+
+    #pause-timer {
+      font-size: 1.2em;
+      padding: 0 5px;
+    }
+
+    .score-button {
+      font-size: 1.2em;
+      padding: 5px;
+    }
+
+    /* Ensure fireworks display properly */
+    .firework {
+      z-index: 1001;
+    }
+  }
 } 
