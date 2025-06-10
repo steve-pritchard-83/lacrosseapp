@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Log the movement
-    addLogEntry(`${player.textContent} moved to ${!isOnField ? 'field' : 'bench'}.`, !isOnField ? 'field' : 'bench');
+    addLogEntry(`${player.textContent.replace('+', '').trim()} moved to ${!isOnField ? 'field' : 'bench'}.`, !isOnField ? 'field' : 'bench');
   }
 
   function recommendPlayer() {
@@ -264,5 +264,5 @@ document.addEventListener('DOMContentLoaded', () => {
     isPaused = !isPaused;
     pauseButton.textContent = isPaused ? '▶️' : '⏸️';
     addLogEntry(`Game ${isPaused ? 'paused' : 'resumed'}`, 'field');
-  });
+  }); 
 }); 
