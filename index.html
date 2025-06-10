@@ -9,36 +9,40 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header>
+  <div class="container">
     <h1>Lacrosse Support App</h1>
     <p class="subtitle">(add 4 players to field to start game)</p>
-  </header>
-  <div class="container">
+
     <div id="bench">
       <h2>Bench</h2>
       <div id="bench-players" class="dropzone">
-        <div id="player-callum" class="player" draggable="true">Callum <button class="score-button">+</button></div>
-        <div id="player-ethan" class="player" draggable="true">Ethan <button class="score-button">+</button></div>
-        <div id="player-oliver" class="player" draggable="true">Oliver <button class="score-button">+</button></div>
-        <div id="player-abraham" class="player" draggable="true">Abraham <button class="score-button">+</button></div>
-        <div id="player-henry" class="player" draggable="true">Henry <button class="score-button">+</button></div>
-        <div id="player-henryb" class="player" draggable="true">Henry B <button class="score-button">+</button></div>
-        <div id="player-arlo" class="player" draggable="true">Arlo <button class="score-button">+</button></div>
-        <div id="player-newkid" class="player" draggable="true">New Kid <button class="score-button">+</button></div>
+        <div id="player-callum" class="player" draggable="true">Callum (07)<button class="score-button">🥍</button></div>
+        <div id="player-ethan" class="player" draggable="true">Ethan (10)<button class="score-button">🥍</button></div>
+        <div id="player-oliver" class="player" draggable="true">Oliver (13)<button class="score-button">🥍</button></div>
+        <div id="player-abraham" class="player" draggable="true">Abraham (16)<button class="score-button">🥍</button></div>
+        <div id="player-henry" class="player" draggable="true">Henry (02)<button class="score-button">🥍</button></div>
+        <div id="player-henryb" class="player" draggable="true">Henry B (04)<button class="score-button">🥍</button></div>
+        <div id="player-arlo" class="player" draggable="true">Arlo (09)<button class="score-button">🥍</button></div>
+        <div id="player-newkid" class="player" draggable="true">New Kid (18)<button class="score-button">🥍</button></div>
       </div>
     </div>
+
     <div id="field">
       <h2>Field <span id="timer">(1st Quarter 10:00)</span> <button id="pause-timer">⏸️</button></h2>
-      <div id="goalie" class="player" draggable="false">Ben (Goalie)</div>
+      <div id="goalie" class="player" draggable="true">Goalie Ben (01)<button class="score-button">🥍</button></div>
+      <h2>Field Players</h2>
       <div id="field-players" class="dropzone">
-        <!-- Field players will be here -->
       </div>
     </div>
-  </div>
-  <div id="log">
-    <h2>Activity Log <span id="total-goals">(Total Goals: 0)</span></h2>
-    <button id="export-log">Export Log</button>
-    <ul id="activity-log"></ul>
+
+    <div id="log">
+      <h2>Activity Log <span>(Total Goals: 0)</span></h2>
+      <div class="log-controls">
+        <button id="export-log">📝 Export Log</button>
+        <button id="undo-action">↩️ Undo</button>
+      </div>
+      <ul id="activity-log"></ul>
+    </div>
   </div>
   <script src="script.js"></script>
 </body>

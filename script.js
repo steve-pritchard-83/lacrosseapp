@@ -152,11 +152,63 @@ document.addEventListener('DOMContentLoaded', () => {
       formatTime(stats.totalFieldTime) : 
       formatTime(stats.totalFieldTime);
 
-    statsDisplay.textContent = ` (⚽${stats.goals} ⏱️${timeDisplay})`;
+    statsDisplay.textContent = ` (🥍${stats.goals} ⏱️${timeDisplay})`;
   }
 
   // Start stats update interval
   setInterval(updatePlayerStats, 1000);
+
+  function getFieldPlayerCount() {
+    return fieldPlayers.querySelectorAll('.player').length;
+  }
+
+  function startPlayerTransition(player) {
+    // Only start transitions for players on the field
+    if (!player.closest('#field-players')) return;
+
+    // Reset any existing transitions and colors
+    player.classList.remove('red');
+    player.style.transition = 'none';
+    player.style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
+    
+    // Only start transitions if timer is running
+    if (!timer) return;
+    
+    // Force a reflow to ensure the initial state is rendered
+    void player.offsetWidth;
+    
+    // First 15 seconds: Green to Yellow
+    player.style.transition = 'background 15s linear';
+    player.style.background = 'linear-gradient(135deg, #ffc107, #d39e00)';
+    
+    // At 15 seconds: Start Yellow to Red Flash transition
+    setTimeout(() => {
+      if (player.closest('#field-players')) {
+        // Remove the previous transition
+        player.style.transition = 'background 15s linear';
+        player.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
+        
+        // Start flashing at 30 seconds
+        setTimeout(() => {
+          if (player.closest('#field-players')) {
+            player.style.transition = 'none';
+            player.classList.add('red');
+          }
+        }, 15000); // Second 15-second interval
+      }
+    }, 15000); // First 15-second interval
+  }
+
+  function startCountdownAndTransition() {
+    // Start the timer
+    timer = setInterval(updateTimer, 1000);
+    addLogEntry(`${getQuarterName(currentQuarter)} begins`, 'field');
+    
+    // Start transitions for all players on field
+    document.querySelectorAll('#field-players .player').forEach(player => {
+      startPlayerTransition(player);
+    });
+  }
 
   function handlePlayerClick(e) {
     // Ignore clicks on the score button
@@ -168,6 +220,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const isOnField = player.closest('#field-players');
     const targetZone = isOnField ? benchPlayers : fieldPlayers;
     const sourceZone = isOnField ? fieldPlayers : benchPlayers;
+
+    // Get player name with number
+    const playerName = player.childNodes[0].textContent.trim();
 
     // Update field time tracking
     const stats = playerStats.get(player);
@@ -186,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Check 4-player limit when moving to field
-    if (!isOnField && fieldPlayers.children.length >= 4) {
+    if (!isOnField && getFieldPlayerCount() >= 4) {
       alert('Only 4 players are allowed on the field.');
       return;
     }
@@ -201,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
       hadRedClass: player.classList.contains('red'),
       hadOnFieldClass: player.classList.contains('on-field'),
       previousTransition: player.style.transition,
-      previousBackgroundColor: player.style.backgroundColor,
+      previousBackground: player.style.background,
       scoreButtonDisplay: player.querySelector('.score-button').style.display,
       playerStats: { ...playerStats.get(player) } // Save stats state
     });
@@ -214,9 +269,8 @@ document.addEventListener('DOMContentLoaded', () => {
       // Moving to field
       player.classList.remove('red');
       player.style.transition = 'none';
-      player.style.backgroundColor = '#28a745';
+      player.style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
       player.classList.add('on-field');
-      player.querySelector('.score-button').style.display = 'inline';
       
       // If timer is running, start the transition for the new player
       if (timer) {
@@ -224,29 +278,25 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       // Start the game if we now have 4 players on the field
-      if (fieldPlayers.children.length === 4 && !timer) {
+      if (getFieldPlayerCount() === 4 && !timer) {
         startCountdownAndTransition();
       }
     } else {
       // Moving to bench - reset to green without transitions
       player.classList.remove('red', 'on-field');
       player.style.transition = 'none';
-      player.style.backgroundColor = '#28a745';
-      player.querySelector('.score-button').style.display = 'none';
-      
-      // Clear any ongoing transitions or timeouts
-      player.style.transition = 'none';
+      player.style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
       recommendPlayer();
     }
 
-    // Log the movement
-    addLogEntry(`${player.textContent.replace('+', '').trim()} moved to ${!isOnField ? 'field' : 'bench'}.`, !isOnField ? 'field' : 'bench');
+    // Log the movement with player number
+    addLogEntry(`${playerName} moved to ${!isOnField ? 'field' : 'bench'}.`, !isOnField ? 'field' : 'bench');
   }
 
   function recommendPlayer() {
     const benchPlayers = Array.from(document.querySelectorAll('#bench-players .player'));
     if (benchPlayers.length > 0) {
-      const recommendedPlayer = benchPlayers[0].textContent.replace('+', '').trim();
+      const recommendedPlayer = benchPlayers[0].childNodes[0].textContent.trim();
       alert(`Recommend ${recommendedPlayer} to come on the field.`);
     }
   }
@@ -263,52 +313,21 @@ document.addEventListener('DOMContentLoaded', () => {
     e.preventDefault();
   }
 
-  function startPlayerTransition(player) {
-    // Only start transitions for players on the field
-    if (!player.closest('#field-players')) return;
-
-    // Start with green and set up transition
-    player.style.backgroundColor = '#28a745';
-    player.style.transition = 'background-color 15s linear';
-    
-    // Immediately start transition to yellow
-    requestAnimationFrame(() => {
-      player.style.backgroundColor = '#ffc107'; // Yellow
-      
-      // After 15 seconds, transition to red
-      setTimeout(() => {
-        // Check if player is still on field before continuing transition
-        if (player.closest('#field-players')) {
-          player.style.backgroundColor = '#dc3545'; // Red
-          
-          // After reaching red (15 more seconds), start flashing
-          setTimeout(() => {
-            // Final check if player is still on field
-            if (player.closest('#field-players')) {
-              player.style.transition = 'none';
-              player.classList.add('red');
-            }
-          }, 15000);
-        }
-      }, 15000);
-    });
-  }
-
-  function startCountdownAndTransition() {
-    // Start the timer
-    timer = setInterval(updateTimer, 1000);
-    addLogEntry(`${getQuarterName(currentQuarter)} begins`, 'field');
-    
-    // Start transitions only for players on field
-    const fieldPlayers = document.querySelectorAll('#field-players .player');
-    fieldPlayers.forEach(player => startPlayerTransition(player));
+  function handleDrop(e) {
+    e.preventDefault();
+    const data = e.dataTransfer.getData('text/plain');
+    const draggable = document.getElementById(data);
+    const targetZone = e.target.closest('.dropzone');
+    if (targetZone) {
+      targetZone.appendChild(draggable);
+    }
   }
 
   document.querySelectorAll('.score-button').forEach(button => {
     button.addEventListener('click', (e) => {
       e.stopPropagation(); // Prevent triggering drag events
       const playerElement = e.target.parentElement;
-      const playerName = playerElement.textContent.replace('+', '').trim();
+      const playerName = playerElement.childNodes[0].textContent.trim();
 
       // Update player's goal count
       const stats = playerStats.get(playerElement);
@@ -332,13 +351,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Add undo button next to export log button
-  const exportLogButton = document.getElementById('export-log');
-  const undoButton = document.createElement('button');
-  undoButton.id = 'undo-action';
-  undoButton.textContent = '↩️ Undo';
-  undoButton.style.marginLeft = '10px';
-  exportLogButton.parentNode.insertBefore(undoButton, exportLogButton.nextSibling);
+  // Remove the duplicate undo button creation and keep the event listener
+  document.getElementById('undo-action').addEventListener('click', undoLastAction);
 
   // Undo functionality
   function undoLastAction() {
@@ -362,7 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
       else lastAction.player.classList.remove('on-field');
 
       lastAction.player.style.transition = lastAction.previousTransition;
-      lastAction.player.style.backgroundColor = lastAction.previousBackgroundColor;
+      lastAction.player.style.background = lastAction.previousBackground;
       lastAction.player.querySelector('.score-button').style.display = lastAction.scoreButtonDisplay;
 
       // Restore player stats
@@ -389,8 +403,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (lastLogEntry) activityLog.removeChild(lastLogEntry);
     }
   }
-
-  undoButton.addEventListener('click', undoLastAction);
 
   document.querySelectorAll('.player').forEach(player => {
     player.addEventListener('dragstart', handleDragStart);
