@@ -50,8 +50,8 @@ h1 {
   color: #000;
 }
 
-h2 {
-  margin-top: 0;
+#log h2 {
+  color: #fff;
 }
 
 .dropzone {
