@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let timeLeft = 600; // 10 minutes in seconds
   let isPaused = false;
   let currentQuarter = 1;
+  let totalGoals = 0;
 
   function getQuarterName(quarter) {
     const quarters = {
@@ -38,9 +39,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateTotalGoals() {
-    const totalGoals = document.getElementById('total-goals');
-    const goalCount = document.querySelectorAll('.goal-icon').length;
-    totalGoals.textContent = `(Total Goals: ${goalCount})`;
+    const totalGoalsDisplay = document.createElement('span');
+    totalGoalsDisplay.textContent = ` (Total Goals: ${totalGoals})`;
+    const logHeading = document.querySelector('#log h2');
+    // Remove existing total if present
+    const existingTotal = logHeading.querySelector('span');
+    if (existingTotal) {
+      logHeading.removeChild(existingTotal);
+    }
+    logHeading.appendChild(totalGoalsDisplay);
   }
 
   function addLogEntry(message, type) {
@@ -95,6 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
       e.stopPropagation(); // Prevent triggering drag events
       const playerName = e.target.parentElement.textContent.replace('+', '').trim();
       addLogEntry(`${playerName} scored a goal!`, 'goal');
+      totalGoals++;
+      updateTotalGoals();
       createRandomFireworks();
     });
   });
