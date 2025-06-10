@@ -59,6 +59,7 @@ h1 {
 
 #log {
   width: 100%;
+  max-width: 1200px;
   margin-top: 20px;
   color: #000;
 }
@@ -84,10 +85,13 @@ h1 {
 .player {
   background-color: #28a745;
   color: white;
-  padding: 12px;
-  margin: 8px;
+  padding: 8px 12px;
+  margin: 4px;
   border-radius: 5px;
   cursor: grab;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .player.on-field {
@@ -227,19 +231,27 @@ button:hover {
 }
 
 .score-button {
-  display: none;
-  background: none;
+  padding: 4px 8px;
+  font-size: 14px;
+  background-color: rgba(255, 255, 255, 0.2);
+  color: white;
   border: none;
+  border-radius: 3px;
   cursor: pointer;
-  font-size: 1.2em;
+  transition: background-color 0.3s ease;
+  display: flex;
+  align-items: center;
+  min-width: 24px;
+  min-height: 24px;
+  margin: 0;
 }
 
 .player.on-field .score-button {
-  display: inline;
+  display: flex;
 }
 
 .score-button::before {
-  content: '\1F945'; /* Soccer goal icon */
+  content: '🥍'; /* Lacrosse stick emoji */
 }
 
 #pause-timer {
