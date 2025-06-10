@@ -348,7 +348,9 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Start the game if we now have 4 players on the field
       if (getFieldPlayerCount() === 4 && !timer) {
-        startCountdownAndTransition();
+        if (confirm('Ready to start the game?')) {
+          startCountdownAndTransition();
+        }
       }
     } else {
       // Moving to bench - reset to green and stop any animations
