@@ -9,14 +9,11 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <header>
+    <h1>Lacrosse Support App</h1>
+    <p class="subtitle">(add 4 players to field to start game)</p>
+  </header>
   <div class="container">
-    <div id="field">
-      <h2>Field <span id="timer">(1st Quarter 10:00)</span> <button id="pause-timer">⏸️</button></h2>
-      <div id="goalie" class="player" draggable="false">Ben (Goalie)</div>
-      <div id="field-players" class="dropzone">
-        <!-- Field players will be here -->
-      </div>
-    </div>
     <div id="bench">
       <h2>Bench</h2>
       <div id="bench-players" class="dropzone">
@@ -28,6 +25,13 @@
         <div id="player-henryb" class="player" draggable="true">Henry B <button class="score-button">+</button></div>
         <div id="player-arlo" class="player" draggable="true">Arlo <button class="score-button">+</button></div>
         <div id="player-newkid" class="player" draggable="true">New Kid <button class="score-button">+</button></div>
+      </div>
+    </div>
+    <div id="field">
+      <h2>Field <span id="timer">(1st Quarter 10:00)</span> <button id="pause-timer">⏸️</button></h2>
+      <div id="goalie" class="player" draggable="false">Ben (Goalie)</div>
+      <div id="field-players" class="dropzone">
+        <!-- Field players will be here -->
       </div>
     </div>
   </div>

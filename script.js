@@ -11,6 +11,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Add action history tracking
   const actionHistory = [];
+  
+  // Player stats tracking
+  const playerStats = new Map(); // Map to store player statistics
+
+  // Initialize player stats
+  document.querySelectorAll('.player').forEach(player => {
+    playerStats.set(player, {
+      goals: 0,
+      totalFieldTime: 0,
+      fieldEntryTime: null
+    });
+  });
 
   // Action types
   const ACTION_TYPES = {
@@ -106,6 +118,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function updatePlayerStats() {
+    if (!isPaused) {
+      document.querySelectorAll('#field-players .player').forEach(player => {
+        const stats = playerStats.get(player);
+        if (stats && stats.fieldEntryTime !== null) {
+          stats.totalFieldTime = Math.floor((Date.now() - stats.fieldEntryTime) / 1000);
+          updatePlayerDisplay(player);
+        }
+      });
+    }
+  }
+
+  function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  }
+
+  function updatePlayerDisplay(player) {
+    const stats = playerStats.get(player);
+    if (!stats) return;
+
+    // Get or create the stats display element
+    let statsDisplay = player.querySelector('.player-stats');
+    if (!statsDisplay) {
+      statsDisplay = document.createElement('span');
+      statsDisplay.className = 'player-stats';
+      player.appendChild(statsDisplay);
+    }
+
+    const timeDisplay = stats.fieldEntryTime !== null ? 
+      formatTime(stats.totalFieldTime) : 
+      formatTime(stats.totalFieldTime);
+
+    statsDisplay.textContent = ` (⚽${stats.goals} ⏱️${timeDisplay})`;
+  }
+
+  // Start stats update interval
+  setInterval(updatePlayerStats, 1000);
+
   function handlePlayerClick(e) {
     // Ignore clicks on the score button
     if (e.target.classList.contains('score-button')) {
@@ -116,6 +168,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const isOnField = player.closest('#field-players');
     const targetZone = isOnField ? benchPlayers : fieldPlayers;
     const sourceZone = isOnField ? fieldPlayers : benchPlayers;
+
+    // Update field time tracking
+    const stats = playerStats.get(player);
+    if (stats) {
+      if (isOnField) {
+        // Moving to bench - update total time
+        if (stats.fieldEntryTime !== null) {
+          stats.totalFieldTime += Math.floor((Date.now() - stats.fieldEntryTime) / 1000);
+          stats.fieldEntryTime = null;
+        }
+      } else {
+        // Moving to field - start timing
+        stats.fieldEntryTime = Date.now();
+      }
+      updatePlayerDisplay(player);
+    }
 
     // Check 4-player limit when moving to field
     if (!isOnField && fieldPlayers.children.length >= 4) {
@@ -134,7 +202,8 @@ document.addEventListener('DOMContentLoaded', () => {
       hadOnFieldClass: player.classList.contains('on-field'),
       previousTransition: player.style.transition,
       previousBackgroundColor: player.style.backgroundColor,
-      scoreButtonDisplay: player.querySelector('.score-button').style.display
+      scoreButtonDisplay: player.querySelector('.score-button').style.display,
+      playerStats: { ...playerStats.get(player) } // Save stats state
     });
 
     // Move player to target zone
@@ -241,11 +310,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const playerElement = e.target.parentElement;
       const playerName = playerElement.textContent.replace('+', '').trim();
 
+      // Update player's goal count
+      const stats = playerStats.get(playerElement);
+      if (stats) {
+        stats.goals++;
+        updatePlayerDisplay(playerElement);
+      }
+
       // Track action before making the change
       actionHistory.push({
         type: ACTION_TYPES.GOAL_SCORE,
         player: playerElement,
-        previousTotalGoals: totalGoals
+        previousTotalGoals: totalGoals,
+        previousPlayerStats: { ...playerStats.get(playerElement) }
       });
 
       addLogEntry(`${playerName} scored a goal!`, 'goal');
@@ -288,6 +365,12 @@ document.addEventListener('DOMContentLoaded', () => {
       lastAction.player.style.backgroundColor = lastAction.previousBackgroundColor;
       lastAction.player.querySelector('.score-button').style.display = lastAction.scoreButtonDisplay;
 
+      // Restore player stats
+      if (lastAction.playerStats) {
+        playerStats.set(lastAction.player, lastAction.playerStats);
+        updatePlayerDisplay(lastAction.player);
+      }
+
       // Remove the log entry for this action
       if (lastLogEntry) activityLog.removeChild(lastLogEntry);
 
@@ -295,6 +378,12 @@ document.addEventListener('DOMContentLoaded', () => {
       // Restore previous total goals
       totalGoals = lastAction.previousTotalGoals;
       updateTotalGoals();
+
+      // Restore player stats
+      if (lastAction.previousPlayerStats) {
+        playerStats.set(lastAction.player, lastAction.previousPlayerStats);
+        updatePlayerDisplay(lastAction.player);
+      }
 
       // Remove the log entry for this action
       if (lastLogEntry) activityLog.removeChild(lastLogEntry);
