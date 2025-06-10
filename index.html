@@ -6,7 +6,10 @@
   <meta name="theme-color" content="#1c1c1e">
   <title>Lacrosse Bench Manager</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <script>
+    const ts = Date.now();
+    document.write('<link rel="stylesheet" href="styles.css?v=' + ts + '">');
+  </script>
 </head>
 <body>
   <div class="container">
@@ -16,20 +19,20 @@
     <div id="bench">
       <h2>Bench</h2>
       <div id="bench-players" class="dropzone">
-        <div id="player-callum" class="player" draggable="true">Callum (07)<button class="score-button">🥍</button></div>
-        <div id="player-ethan" class="player" draggable="true">Ethan (10)<button class="score-button">🥍</button></div>
-        <div id="player-oliver" class="player" draggable="true">Oliver (13)<button class="score-button">🥍</button></div>
-        <div id="player-abraham" class="player" draggable="true">Abraham (16)<button class="score-button">🥍</button></div>
-        <div id="player-henry" class="player" draggable="true">Henry (02)<button class="score-button">🥍</button></div>
-        <div id="player-henryb" class="player" draggable="true">Henry B (04)<button class="score-button">🥍</button></div>
-        <div id="player-arlo" class="player" draggable="true">Arlo (09)<button class="score-button">🥍</button></div>
-        <div id="player-newkid" class="player" draggable="true">New Kid (18)<button class="score-button">🥍</button></div>
+        <div id="player-callum" class="player" draggable="true"><span class="player-name">Callum (07)</span><button class="score-button">🥍</button></div>
+        <div id="player-ethan" class="player" draggable="true"><span class="player-name">Ethan (10)</span><button class="score-button">🥍</button></div>
+        <div id="player-oliver" class="player" draggable="true"><span class="player-name">Oliver (13)</span><button class="score-button">🥍</button></div>
+        <div id="player-abraham" class="player" draggable="true"><span class="player-name">Abraham (16)</span><button class="score-button">🥍</button></div>
+        <div id="player-henry" class="player" draggable="true"><span class="player-name">Henry (02)</span><button class="score-button">🥍</button></div>
+        <div id="player-henryb" class="player" draggable="true"><span class="player-name">Henry B (04)</span><button class="score-button">🥍</button></div>
+        <div id="player-arlo" class="player" draggable="true"><span class="player-name">Arlo (09)</span><button class="score-button">🥍</button></div>
+        <div id="player-newkid" class="player" draggable="true"><span class="player-name">New Kid (18)</span><button class="score-button">🥍</button></div>
       </div>
     </div>
 
     <div id="field">
       <h2>Field <span id="timer">(1st Quarter 10:00)</span> <button id="pause-timer">⏸️</button></h2>
-      <div id="goalie" class="player" draggable="true">Goalie Ben (01)<button class="score-button">🥍</button></div>
+      <div id="goalie" class="player" draggable="true"><span class="player-name">Goalie Ben (01)</span><button class="score-button">🥍</button></div>
       <h2>Field Players</h2>
       <div id="field-players" class="dropzone">
       </div>
@@ -44,6 +47,8 @@
       <ul id="activity-log"></ul>
     </div>
   </div>
-  <script src="script.js"></script>
+  <script>
+    document.write('<script src="script.js?v=' + ts + '"><\/script>');
+  </script>
 </body>
 </html>

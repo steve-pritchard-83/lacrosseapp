@@ -1,3 +1,22 @@
+if (window.CSS && CSS.registerProperty) {
+  try {
+    CSS.registerProperty({
+      name: '--color-start',
+      syntax: '<color>',
+      inherits: false,
+      initialValue: '#2ecc71',
+    });
+    CSS.registerProperty({
+      name: '--color-end',
+      syntax: '<color>',
+      inherits: false,
+      initialValue: '#27ae60',
+    });
+  } catch (err) {
+    console.error('Failed to register CSS properties:', err);
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const fieldPlayers = document.getElementById('field-players');
   const benchPlayers = document.getElementById('bench-players');
@@ -163,40 +182,27 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function startPlayerTransition(player) {
-    // Only start transitions for players on the field
-    if (!player.closest('#field-players')) return;
+    if (!player.closest('#field-players') || !timer) return;
 
-    // Reset any existing transitions and colors
-    player.classList.remove('red');
-    player.style.transition = 'none';
-    player.style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
-    
-    // Only start transitions if timer is running
-    if (!timer) return;
-    
-    // Force a reflow to ensure the initial state is rendered
+    // Reset any existing animation/color states
+    player.classList.remove('red', 'g-y-r-transition');
+    player.style.animation = ''; // Clear inline animation styles to allow re-triggering
+
+    // Force reflow to restart animation
     void player.offsetWidth;
-    
-    // First 15 seconds: Green to Yellow
-    player.style.transition = 'background 15s linear';
-    player.style.background = 'linear-gradient(135deg, #ffc107, #d39e00)';
-    
-    // At 15 seconds: Start Yellow to Red Flash transition
-    setTimeout(() => {
-      if (player.closest('#field-players')) {
-        // Remove the previous transition
-        player.style.transition = 'background 15s linear';
-        player.style.background = 'linear-gradient(135deg, #dc3545, #c82333)';
-        
-        // Start flashing at 30 seconds
-        setTimeout(() => {
-          if (player.closest('#field-players')) {
-            player.style.transition = 'none';
+
+    // Add class to start the 30-second transition
+    player.classList.add('g-y-r-transition');
+
+    // After 30 seconds, switch to flashing red
+    const transitionTimeout = setTimeout(() => {
+        if (player.closest('#field-players')) {
+            player.classList.remove('g-y-r-transition');
             player.classList.add('red');
-          }
-        }, 15000); // Second 15-second interval
-      }
-    }, 15000); // First 15-second interval
+        }
+    }, 30000);
+
+    player.dataset.transitionTimeout = transitionTimeout;
   }
 
   function startCountdownAndTransition() {
@@ -222,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const sourceZone = isOnField ? fieldPlayers : benchPlayers;
 
     // Get player name with number
-    const playerName = player.childNodes[0].textContent.trim();
+    const playerName = player.querySelector('.player-name').textContent.trim();
 
     // Update field time tracking
     const stats = playerStats.get(player);
@@ -254,8 +260,9 @@ document.addEventListener('DOMContentLoaded', () => {
       toZone: targetZone,
       wasOnField: isOnField,
       hadRedClass: player.classList.contains('red'),
+      hadYellowClass: player.classList.contains('yellow'),
+      hadSolidRedClass: player.classList.contains('solid-red'),
       hadOnFieldClass: player.classList.contains('on-field'),
-      previousTransition: player.style.transition,
       previousBackground: player.style.background,
       scoreButtonDisplay: player.querySelector('.score-button').style.display,
       playerStats: { ...playerStats.get(player) } // Save stats state
@@ -267,8 +274,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update player styling and state
     if (!isOnField) {
       // Moving to field
-      player.classList.remove('red');
-      player.style.transition = 'none';
+      player.classList.remove('red', 'yellow', 'solid-red');
       player.style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
       player.classList.add('on-field');
       
@@ -282,10 +288,14 @@ document.addEventListener('DOMContentLoaded', () => {
         startCountdownAndTransition();
       }
     } else {
-      // Moving to bench - reset to green without transitions
-      player.classList.remove('red', 'on-field');
-      player.style.transition = 'none';
-      player.style.background = 'linear-gradient(135deg, #2ecc71, #27ae60)';
+      // Moving to bench - reset to green and stop any animations
+      const timeoutId = player.dataset.transitionTimeout;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        delete player.dataset.transitionTimeout;
+      }
+      player.classList.remove('red', 'g-y-r-transition', 'on-field');
+      player.style.animation = ''; // Clear any inline animation properties
       recommendPlayer();
     }
 
@@ -296,7 +306,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function recommendPlayer() {
     const benchPlayers = Array.from(document.querySelectorAll('#bench-players .player'));
     if (benchPlayers.length > 0) {
-      const recommendedPlayer = benchPlayers[0].childNodes[0].textContent.trim();
+      const recommendedPlayer = benchPlayers[0].querySelector('.player-name').textContent.trim();
       alert(`Recommend ${recommendedPlayer} to come on the field.`);
     }
   }
@@ -327,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
     button.addEventListener('click', (e) => {
       e.stopPropagation(); // Prevent triggering drag events
       const playerElement = e.target.parentElement;
-      const playerName = playerElement.childNodes[0].textContent.trim();
+      const playerName = playerElement.querySelector('.player-name').textContent.trim();
 
       // Update player's goal count
       const stats = playerStats.get(playerElement);
@@ -368,16 +378,13 @@ document.addEventListener('DOMContentLoaded', () => {
       // Restore player to previous zone
       lastAction.fromZone.appendChild(lastAction.player);
 
-      // Restore previous state
-      if (lastAction.hadRedClass) lastAction.player.classList.add('red');
-      else lastAction.player.classList.remove('red');
-
-      if (lastAction.hadOnFieldClass) lastAction.player.classList.add('on-field');
-      else lastAction.player.classList.remove('on-field');
-
-      lastAction.player.style.transition = lastAction.previousTransition;
-      lastAction.player.style.background = lastAction.previousBackground;
-      lastAction.player.querySelector('.score-button').style.display = lastAction.scoreButtonDisplay;
+      // Restore previous state by re-running the transition logic if they were on field
+      if (lastAction.wasOnField) {
+        startPlayerTransition(lastAction.player);
+      } else {
+        player.classList.remove('red', 'g-y-r-transition', 'on-field');
+        player.style.animation = '';
+      }
 
       // Restore player stats
       if (lastAction.playerStats) {

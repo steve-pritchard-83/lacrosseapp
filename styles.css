@@ -43,6 +43,21 @@ h1 {
   font-size: 0.9em;
 }
 
+.widget {
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.field, .bench {
+  min-height: 120px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px;
+}
+
 #bench, #field {
   background: rgba(0, 0, 0, 0.2);
   border-radius: 12px;
@@ -89,6 +104,7 @@ h2 {
 }
 
 .player {
+  /* Default and base state is green */
   background: linear-gradient(135deg, #2ecc71, #27ae60);
   color: white;
   padding: 8px 12px;
@@ -99,9 +115,83 @@ h2 {
   gap: 8px;
   font-size: 0.9em;
   box-shadow: 0 2px 8px rgba(46, 204, 113, 0.2);
-  transition: all 0.2s ease;
   width: 140px;
   position: relative;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+/* Ensure text and buttons are on the top layer */
+.player > * {
+  position: relative;
+  z-index: 2;
+}
+
+.player::before,
+.player::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 12px;
+  opacity: 0; /* All layers start hidden */
+}
+
+/* Yellow Layer (blends on top of green base) */
+.player::before {
+  background: linear-gradient(135deg, #f1c40f, #f39c12);
+  z-index: 0;
+}
+
+/* Red Layer (blends on top of yellow) */
+.player::after {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  z-index: 1;
+}
+
+/* --- Animations --- */
+
+/* Green to Yellow: Fade in the yellow layer over 15s */
+.player.g-y-r-transition::before {
+  animation: fade-in 15s linear forwards;
+}
+
+/* Yellow to Red: Fade in the red layer from 15s to 30s */
+.player.g-y-r-transition::after {
+  animation: fade-in-delayed 30s linear forwards;
+}
+
+@keyframes fade-in {
+  to { opacity: 1; }
+}
+
+@keyframes fade-in-delayed {
+  0% { opacity: 0; }
+  50% { opacity: 0; } /* 15s delay */
+  100% { opacity: 1; }
+}
+
+
+/* --- Flashing Red State --- */
+.player.red {
+  animation: flash 0.6s infinite;
+}
+.player.red::before, .player.red::after {
+  display: none;
+}
+
+@keyframes flash {
+  0% { 
+    background: linear-gradient(135deg, #ff0000, #cc0000);
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+  }
+  50% { 
+    background: linear-gradient(135deg, #ffffff, #f0f0f0);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.9);
+  }
+  100% { 
+    background: linear-gradient(135deg, #ff0000, #cc0000);
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+  }
 }
 
 .score-button {
@@ -120,6 +210,7 @@ h2 {
   min-height: 24px;
   margin-left: auto;
   backdrop-filter: blur(4px);
+  order: 2;
 }
 
 .player.on-field .score-button {
@@ -180,25 +271,6 @@ h2 {
   content: "🥅";
 }
 
-@keyframes flash {
-  0% { 
-    background: linear-gradient(135deg, #ff0000, #cc0000);
-    box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
-  }
-  50% { 
-    background: linear-gradient(135deg, #ffffff, #f0f0f0);
-    box-shadow: 0 0 30px rgba(255, 255, 255, 0.9);
-  }
-  100% { 
-    background: linear-gradient(135deg, #ff0000, #cc0000);
-    box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
-  }
-}
-
-.red {
-  animation: flash 0.6s infinite;
-}
-
 button {
   background: rgba(255, 255, 255, 0.1);
   border: none;
@@ -221,6 +293,12 @@ button:hover {
 #pause-timer {
   padding: 4px 8px;
   font-size: 1em;
+}
+
+.player-stats {
+  font-size: 0.8em;
+  opacity: 0.9;
+  order: 1;
 }
 
 /* Landscape mobile view */
@@ -477,9 +555,4 @@ and (orientation: landscape) {
     transform: translate(var(--x, 50px), var(--y, 50px));
     opacity: 0;
   }
-}
-
-.player.red {
-  animation: flash 0.6s infinite;
-  box-shadow: 0 2px 8px rgba(255, 77, 77, 0.3);
 } 
