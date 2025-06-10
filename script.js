@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function recommendPlayer() {
     const benchPlayers = Array.from(document.querySelectorAll('#bench-players .player'));
     if (benchPlayers.length > 0) {
-      const recommendedPlayer = benchPlayers[0].textContent;
+      const recommendedPlayer = benchPlayers[0].textContent.replace('+', '').trim();
       alert(`Recommend ${recommendedPlayer} to come on the field.`);
     }
   }
