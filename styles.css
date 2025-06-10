@@ -125,7 +125,7 @@ h1 {
 #timer {
   font-size: inherit;
   margin: 15px 0;
-  color: #ff9500;
+  color: #ffffff;
 }
 
 #score {
@@ -139,7 +139,7 @@ h1 {
 button {
   padding: 12px 24px;
   font-size: 16px;
-  background-color: #ff9500;
+  background-color: #28a745;
   color: white;
   border: none;
   border-radius: 5px;
@@ -148,7 +148,7 @@ button {
 }
 
 button:hover {
-  background-color: #ffcc00;
+  background-color: #218838;
   transform: translateY(-2px);
 }
 
