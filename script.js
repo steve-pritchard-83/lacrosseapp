@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
         draggableElement.classList.remove('red', 'on-field');
         draggableElement.style.backgroundColor = '#ff9500';
       }
-      addLogEntry(`${draggableElement.textContent} moved to ${dropzone.id === 'field-players' ? 'field' : 'bench'}.`, dropzone.id === 'field-players' ? 'goal' : 'bench');
+      addLogEntry(`${draggableElement.textContent} moved to ${dropzone.id === 'field-players' ? 'field' : 'bench'}.`, dropzone.id === 'field-players' ? 'field' : 'bench');
       if (dropzone.id === 'bench-players') {
         recommendPlayer();
       }
