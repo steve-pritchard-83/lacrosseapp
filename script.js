@@ -28,6 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentQuarter = 1;
   let totalGoals = 0;
 
+  // Hide score buttons by default
+  document.querySelectorAll('.score-button').forEach(button => {
+    button.style.display = 'none';
+  });
+
   // Add action history tracking
   const actionHistory = [];
   
@@ -41,6 +46,43 @@ document.addEventListener('DOMContentLoaded', () => {
       totalFieldTime: 0,
       fieldEntryTime: null
     });
+
+    const playerName = player.querySelector('.player-name').textContent.trim();
+
+    if (!playerName.toLowerCase().includes('ben')) {
+      const removeButton = document.createElement('button');
+      removeButton.textContent = '✖';
+      removeButton.className = 'remove-player-button';
+      removeButton.title = 'Remove player from game';
+      removeButton.style.cssText = `
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        border: none;
+        background: transparent;
+        color: #c0392b;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        line-height: 1;
+      `;
+
+      removeButton.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (timer) {
+          alert('Cannot remove players after the game has started.');
+          return;
+        }
+        
+        if (confirm(`Are you sure you want to remove ${playerName}? This cannot be undone.`)) {
+          playerStats.delete(player);
+          player.remove();
+          addLogEntry(`${playerName} was removed from the game.`, 'bench');
+        }
+      });
+
+      player.appendChild(removeButton);
+    }
   });
 
   // Action types
@@ -142,7 +184,6 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('#field-players .player').forEach(player => {
         const stats = playerStats.get(player);
         if (stats && stats.fieldEntryTime !== null) {
-          stats.totalFieldTime = Math.floor((Date.now() - stats.fieldEntryTime) / 1000);
           updatePlayerDisplay(player);
         }
       });
@@ -167,9 +208,12 @@ document.addEventListener('DOMContentLoaded', () => {
       player.appendChild(statsDisplay);
     }
 
-    const timeDisplay = stats.fieldEntryTime !== null ? 
-      formatTime(stats.totalFieldTime) : 
-      formatTime(stats.totalFieldTime);
+    let timeToDisplay = stats.totalFieldTime;
+    if (stats.fieldEntryTime !== null && !isPaused) {
+      timeToDisplay += Math.floor((Date.now() - stats.fieldEntryTime) / 1000);
+    }
+
+    const timeDisplay = formatTime(timeToDisplay);
 
     statsDisplay.textContent = ` (🥍${stats.goals} ⏱️${timeDisplay})`;
   }
@@ -210,9 +254,22 @@ document.addEventListener('DOMContentLoaded', () => {
     timer = setInterval(updateTimer, 1000);
     addLogEntry(`${getQuarterName(currentQuarter)} begins`, 'field');
     
+    // Hide remove player buttons
+    document.querySelectorAll('.remove-player-button').forEach(button => {
+      button.style.display = 'none';
+    });
+
     // Start transitions for all players on field
     document.querySelectorAll('#field-players .player').forEach(player => {
+      const stats = playerStats.get(player);
+      if (stats) {
+        stats.fieldEntryTime = Date.now();
+      }
       startPlayerTransition(player);
+      const scoreButton = player.querySelector('.score-button');
+      if (scoreButton) {
+        scoreButton.style.display = 'inline-block';
+      }
     });
   }
 
@@ -240,8 +297,10 @@ document.addEventListener('DOMContentLoaded', () => {
           stats.fieldEntryTime = null;
         }
       } else {
-        // Moving to field - start timing
-        stats.fieldEntryTime = Date.now();
+        // Moving to field - start timing if game is already running
+        if (timer) {
+          stats.fieldEntryTime = Date.now();
+        }
       }
       updatePlayerDisplay(player);
     }
@@ -281,6 +340,10 @@ document.addEventListener('DOMContentLoaded', () => {
       // If timer is running, start the transition for the new player
       if (timer) {
         startPlayerTransition(player);
+        const scoreButton = player.querySelector('.score-button');
+        if (scoreButton) {
+          scoreButton.style.display = 'inline-block';
+        }
       }
       
       // Start the game if we now have 4 players on the field
@@ -296,6 +359,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       player.classList.remove('red', 'g-y-r-transition', 'on-field');
       player.style.animation = ''; // Clear any inline animation properties
+      const scoreButton = player.querySelector('.score-button');
+      if (scoreButton) {
+        scoreButton.style.display = 'none';
+      }
       recommendPlayer();
     }
 
@@ -382,8 +449,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (lastAction.wasOnField) {
         startPlayerTransition(lastAction.player);
       } else {
-        player.classList.remove('red', 'g-y-r-transition', 'on-field');
-        player.style.animation = '';
+        lastAction.player.classList.remove('red', 'g-y-r-transition', 'on-field');
+        lastAction.player.style.animation = '';
+      }
+
+      // Restore score button display
+      const scoreButton = lastAction.player.querySelector('.score-button');
+      if (scoreButton) {
+        scoreButton.style.display = lastAction.scoreButtonDisplay;
       }
 
       // Restore player stats
@@ -467,5 +540,22 @@ document.addEventListener('DOMContentLoaded', () => {
     isPaused = !isPaused;
     pauseButton.textContent = isPaused ? '▶️' : '⏸️';
     addLogEntry(`Game ${isPaused ? 'paused' : 'resumed'}`, 'field');
+
+    document.querySelectorAll('#field-players .player').forEach(player => {
+      const stats = playerStats.get(player);
+      if (stats) {
+        if (isPaused) {
+          // Pausing
+          if (stats.fieldEntryTime !== null) {
+            stats.totalFieldTime += Math.floor((Date.now() - stats.fieldEntryTime) / 1000);
+            stats.fieldEntryTime = null;
+            updatePlayerDisplay(player);
+          }
+        } else {
+          // Resuming
+          stats.fieldEntryTime = Date.now();
+        }
+      }
+    });
   }); 
 }); 
