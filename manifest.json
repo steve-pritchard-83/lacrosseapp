@@ -1,7 +1,7 @@
 {
   "name": "Steve's Web Demo",
   "short_name": "SteveDemo",
-  "start_url": "/index.html",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#fff",
   "theme_color": "#1c1c1e",

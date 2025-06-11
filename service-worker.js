@@ -1,9 +1,12 @@
 const CACHE_NAME = 'steve-web-demo-cache-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/script.js'
+  './',
+  './index.html',
+  './styles.css',
+  './script.js',
+  './manifest.json',
+  './images/icon-192.png',
+  './images/icon-512.png'
 ];
 
 self.addEventListener('install', event => {
