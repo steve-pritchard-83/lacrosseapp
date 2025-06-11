@@ -8,6 +8,20 @@
   --text-secondary: #8c8c8c;
   --border-radius: 16px;
   --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  
+  /* Performance optimizations */
+  --player-width: 140px;
+  --player-padding: 8px 12px;
+  --player-border-radius: 12px;
+  --transition-duration: 0.2s;
+  --animation-timing: ease-in-out;
+  
+  /* Color gradients for better performance */
+  --gradient-green: linear-gradient(135deg, #2ecc71, #27ae60);
+  --gradient-yellow: linear-gradient(135deg, #f1c40f, #f39c12);
+  --gradient-red: linear-gradient(135deg, #e74c3c, #c0392b);
+  --gradient-flash-red: linear-gradient(135deg, #ff0000, #cc0000);
+  --gradient-flash-white: linear-gradient(135deg, #ffffff, #f0f0f0);
 }
 
 body {
@@ -104,21 +118,25 @@ h2 {
 }
 
 .player {
-  /* Default and base state is green */
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  /* Default and base state is green - optimized with CSS variables */
+  background: var(--gradient-green);
   color: white;
-  padding: 8px 12px;
-  border-radius: 12px;
+  padding: var(--player-padding);
+  border-radius: var(--player-border-radius);
   cursor: grab;
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 0.9em;
   box-shadow: 0 2px 8px rgba(46, 204, 113, 0.2);
-  width: 140px;
+  width: var(--player-width);
   position: relative;
   justify-content: space-between;
   overflow: hidden;
+  /* Add hardware acceleration for better performance */
+  transform: translateZ(0);
+  will-change: background, transform;
+  transition: transform var(--transition-duration) var(--animation-timing);
 }
 
 /* Ensure text and buttons are on the top layer */
@@ -136,16 +154,18 @@ h2 {
   opacity: 0; /* All layers start hidden */
 }
 
-/* Yellow Layer (blends on top of green base) */
+/* Yellow Layer (blends on top of green base) - optimized */
 .player::before {
-  background: linear-gradient(135deg, #f1c40f, #f39c12);
+  background: var(--gradient-yellow);
   z-index: 0;
+  will-change: opacity;
 }
 
-/* Red Layer (blends on top of yellow) */
+/* Red Layer (blends on top of yellow) - optimized */
 .player::after {
-  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  background: var(--gradient-red);
   z-index: 1;
+  will-change: opacity;
 }
 
 /* --- Animations --- */
@@ -554,5 +574,71 @@ and (orientation: landscape) {
   100% {
     transform: translate(var(--x, 50px), var(--y, 50px));
     opacity: 0;
+  }
+}
+
+/* Statistics Dashboard Styles */
+.stats-section {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 24px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: var(--player-border-radius);
+  padding: 16px;
+  text-align: center;
+  transition: transform var(--transition-duration) var(--animation-timing);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.stat-card h3 {
+  margin: 0 0 8px 0;
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.stat-card p {
+  margin: 0;
+  font-size: 1.2em;
+  font-weight: bold;
+  color: var(--text-primary);
+}
+
+/* Responsive adjustments for stats */
+@media only screen and (max-width: 600px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .stat-card {
+    padding: 12px;
+  }
+  
+  .stat-card h3 {
+    font-size: 0.8em;
+  }
+  
+  .stat-card p {
+    font-size: 1em;
   }
 } 

@@ -1,18 +1,36 @@
 {
-  "name": "Steve's Web Demo",
-  "short_name": "SteveDemo",
+  "name": "Lacrosse Bench Manager",
+  "short_name": "LacrosseBench",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#fff",
+  "background_color": "#1a1a1a",
   "theme_color": "#1c1c1e",
-  "description": "A demonstration of PWA capabilities.",
+  "description": "Professional lacrosse team management app for tracking players, substitutions, and game statistics.",
+  "categories": ["sports", "utilities", "productivity"],
+  "orientation": "any",
+  "scope": "/",
+  "lang": "en-US",
+  "dir": "ltr",
   "icons": [{
     "src": "icon-192.png",
     "sizes": "192x192",
-    "type": "image/png"
+    "type": "image/png",
+    "purpose": "maskable any"
   }, {
     "src": "icon-512.png",
     "sizes": "512x512",
-    "type": "image/png"
-  }]
+    "type": "image/png",
+    "purpose": "maskable any"
+  }],
+  "screenshots": [],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Start New Game",
+      "short_name": "New Game",
+      "description": "Start a new lacrosse game session",
+      "url": "/?action=new",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ]
 } 

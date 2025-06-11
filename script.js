@@ -17,11 +17,33 @@ if (window.CSS && CSS.registerProperty) {
   }
 }
 
+// Cache DOM elements to avoid repeated queries
+const DOM_CACHE = {
+  fieldPlayers: null,
+  benchPlayers: null,
+  activityLog: null,
+  pauseButton: null,
+  timer: null,
+  logHeading: null
+};
+
+// Initialize DOM cache
+function initDOMCache() {
+  DOM_CACHE.fieldPlayers = document.getElementById('field-players');
+  DOM_CACHE.benchPlayers = document.getElementById('bench-players');
+  DOM_CACHE.activityLog = document.getElementById('activity-log');
+  DOM_CACHE.pauseButton = document.getElementById('pause-timer');
+  DOM_CACHE.timer = document.getElementById('timer');
+  DOM_CACHE.logHeading = document.querySelector('#log h2');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  const fieldPlayers = document.getElementById('field-players');
-  const benchPlayers = document.getElementById('bench-players');
-  const activityLog = document.getElementById('activity-log');
-  const pauseButton = document.getElementById('pause-timer');
+  initDOMCache();
+  
+  const fieldPlayers = DOM_CACHE.fieldPlayers;
+  const benchPlayers = DOM_CACHE.benchPlayers;
+  const activityLog = DOM_CACHE.activityLog;
+  const pauseButton = DOM_CACHE.pauseButton;
   let timer;
   let timeLeft = 600; // 10 minutes in seconds
   let isPaused = false;
@@ -38,6 +60,10 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Player stats tracking
   const playerStats = new Map(); // Map to store player statistics
+  
+  // Game statistics tracking
+  let substitutionCount = 0;
+  let gameStartTime = null;
 
   // Initialize player stats
   document.querySelectorAll('.player').forEach(player => {
@@ -105,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateTimer() {
     const minutes = Math.floor(timeLeft / 60);
     const seconds = timeLeft % 60;
-    const timerDisplay = document.getElementById('timer');
+    const timerDisplay = DOM_CACHE.timer;
     timerDisplay.textContent = `(${getQuarterName(currentQuarter)} ${minutes}:${seconds < 10 ? '0' : ''}${seconds})`;
     
     if (timeLeft > 0 && !isPaused) {
@@ -124,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateTotalGoals() {
     const totalGoalsDisplay = document.createElement('span');
     totalGoalsDisplay.textContent = ` (Total Goals: ${totalGoals})`;
-    const logHeading = document.querySelector('#log h2');
+    const logHeading = DOM_CACHE.logHeading;
     // Remove existing total if present
     const existingTotal = logHeading.querySelector('span');
     if (existingTotal) {
@@ -180,14 +206,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Optimized player stats update with reduced frequency and better caching
+  let statsUpdateCounter = 0;
   function updatePlayerStats() {
     if (!isPaused) {
-      document.querySelectorAll('#field-players .player').forEach(player => {
-        const stats = playerStats.get(player);
-        if (stats && stats.fieldEntryTime !== null) {
-          updatePlayerDisplay(player);
-        }
-      });
+      // Only update every 5 seconds instead of every second for better performance
+      statsUpdateCounter++;
+      if (statsUpdateCounter % 5 === 0) {
+        const fieldPlayersNodes = DOM_CACHE.fieldPlayers.querySelectorAll('.player');
+        fieldPlayersNodes.forEach(player => {
+          const stats = playerStats.get(player);
+          if (stats && stats.fieldEntryTime !== null) {
+            updatePlayerDisplay(player);
+          }
+        });
+      }
     }
   }
 
@@ -221,6 +254,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Start stats update interval
   setInterval(updatePlayerStats, 1000);
+  
+  // Update statistics dashboard
+  function updateStatsDashboard() {
+    // Top scorer
+    let topScorer = null;
+    let maxGoals = 0;
+    playerStats.forEach((stats, player) => {
+      if (stats.goals > maxGoals) {
+        maxGoals = stats.goals;
+        topScorer = player.querySelector('.player-name').textContent.trim();
+      }
+    });
+    document.getElementById('top-scorer').textContent = topScorer ? `${topScorer} (${maxGoals})` : '-';
+
+    // Most field time
+    let mostFieldTimePlayer = null;
+    let maxFieldTime = 0;
+    playerStats.forEach((stats, player) => {
+      let totalTime = stats.totalFieldTime;
+      if (stats.fieldEntryTime !== null && !isPaused) {
+        totalTime += Math.floor((Date.now() - stats.fieldEntryTime) / 1000);
+      }
+      if (totalTime > maxFieldTime) {
+        maxFieldTime = totalTime;
+        mostFieldTimePlayer = player.querySelector('.player-name').textContent.trim();
+      }
+    });
+    document.getElementById('most-field-time').textContent = mostFieldTimePlayer ? 
+      `${mostFieldTimePlayer} (${formatTime(maxFieldTime)})` : '-';
+
+    // Game duration
+    if (gameStartTime) {
+      const gameDuration = Math.floor((Date.now() - gameStartTime) / 1000);
+      document.getElementById('game-duration').textContent = formatTime(gameDuration);
+    }
+
+    // Substitution count
+    document.getElementById('substitution-count').textContent = substitutionCount.toString();
+  }
 
   function getFieldPlayerCount() {
     return fieldPlayers.querySelectorAll('.player').length;
@@ -253,6 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function startCountdownAndTransition() {
     // Start the timer
     timer = setInterval(updateTimer, 1000);
+    gameStartTime = Date.now();
     addLogEntry(`${getQuarterName(currentQuarter)} begins`, 'field');
     
     // Hide remove player buttons
@@ -372,6 +445,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Log the movement with player number
     addLogEntry(`${playerName} moved to ${!isOnField ? 'field' : 'bench'}.`, !isOnField ? 'field' : 'bench');
+    
+    // Track substitutions
+    if (timer) { // Only count if game has started
+      substitutionCount++;
+      updateStatsDashboard();
+    }
+    
     saveGameState();
   }
 
@@ -429,6 +509,7 @@ document.addEventListener('DOMContentLoaded', () => {
       addLogEntry(`${playerName} scored a goal!`, 'goal');
       totalGoals++;
       updateTotalGoals();
+      updateStatsDashboard();
       createRandomFireworks();
       saveGameState();
     });
@@ -570,95 +651,117 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- State Persistence ---
 
   function saveGameState() {
-    const fieldPlayersData = Array.from(document.querySelectorAll('#field-players .player')).map(p => p.id);
-    const benchPlayersData = Array.from(document.querySelectorAll('#bench-players .player')).map(p => p.id);
+    try {
+      const fieldPlayersData = Array.from(document.querySelectorAll('#field-players .player')).map(p => p.id);
+      const benchPlayersData = Array.from(document.querySelectorAll('#bench-players .player')).map(p => p.id);
 
-    const playerStatsData = {};
-    playerStats.forEach((stats, player) => {
-      playerStatsData[player.id] = stats;
-    });
+      const playerStatsData = {};
+      playerStats.forEach((stats, player) => {
+        playerStatsData[player.id] = stats;
+      });
 
-    const state = {
-      hasStarted: !!timer,
-      fieldPlayers: fieldPlayersData,
-      benchPlayers: benchPlayersData,
-      playerStats: playerStatsData,
-      timeLeft,
-      currentQuarter,
-      isPaused,
-      totalGoals,
-      activityLogHtml: activityLog.innerHTML,
-    };
+      const state = {
+        hasStarted: !!timer,
+        fieldPlayers: fieldPlayersData,
+        benchPlayers: benchPlayersData,
+        playerStats: playerStatsData,
+        timeLeft,
+        currentQuarter,
+        isPaused,
+        totalGoals,
+        substitutionCount,
+        gameStartTime,
+        activityLogHtml: activityLog.innerHTML,
+        version: '1.1' // Version tracking for future compatibility
+      };
 
-    localStorage.setItem('lacrosseGameState', JSON.stringify(state));
+      localStorage.setItem('lacrosseGameState', JSON.stringify(state));
+    } catch (error) {
+      console.error('Failed to save game state:', error);
+      alert('Failed to save game progress. Please ensure you have sufficient storage space.');
+    }
   }
 
   function loadGameState() {
-    const savedStateJSON = localStorage.getItem('lacrosseGameState');
-    if (!savedStateJSON) return;
+    try {
+      const savedStateJSON = localStorage.getItem('lacrosseGameState');
+      if (!savedStateJSON) return;
 
-    const savedState = JSON.parse(savedStateJSON);
-
-    const allPlayersById = new Map();
-    document.querySelectorAll('.player').forEach(p => allPlayersById.set(p.id, p));
-
-    // Correctly handle removed players
-    const savedPlayerIds = new Set([...savedState.fieldPlayers, ...savedState.benchPlayers]);
-    allPlayersById.forEach((player, id) => {
-      if (!savedPlayerIds.has(id)) {
-        player.remove();
+      const savedState = JSON.parse(savedStateJSON);
+      
+      // Version compatibility check
+      if (savedState.version && savedState.version !== '1.1') {
+        console.warn('Loading game state from different version:', savedState.version);
       }
-    });
 
-    // Restore player positions
-    const fieldPlayersContainer = document.getElementById('field-players');
-    fieldPlayersContainer.innerHTML = '';
-    savedState.fieldPlayers.forEach(id => {
-      const player = allPlayersById.get(id);
-      if (player) fieldPlayersContainer.appendChild(player);
-    });
+      const allPlayersById = new Map();
+      document.querySelectorAll('.player').forEach(p => allPlayersById.set(p.id, p));
 
-    const benchPlayersContainer = document.getElementById('bench-players');
-    benchPlayersContainer.innerHTML = '';
-    savedState.benchPlayers.forEach(id => {
-      const player = allPlayersById.get(id);
-      if (player) benchPlayersContainer.appendChild(player);
-    });
+      // Correctly handle removed players
+      const savedPlayerIds = new Set([...savedState.fieldPlayers, ...savedState.benchPlayers]);
+      allPlayersById.forEach((player, id) => {
+        if (!savedPlayerIds.has(id)) {
+          player.remove();
+        }
+      });
 
-    // Restore player stats
-    playerStats.clear();
-    for (const [playerId, stats] of Object.entries(savedState.playerStats)) {
-      const player = allPlayersById.get(playerId);
-      if (player) {
-        playerStats.set(player, stats);
-        updatePlayerDisplay(player);
+      // Restore player positions
+      const fieldPlayersContainer = document.getElementById('field-players');
+      fieldPlayersContainer.innerHTML = '';
+      savedState.fieldPlayers.forEach(id => {
+        const player = allPlayersById.get(id);
+        if (player) fieldPlayersContainer.appendChild(player);
+      });
+
+      const benchPlayersContainer = document.getElementById('bench-players');
+      benchPlayersContainer.innerHTML = '';
+      savedState.benchPlayers.forEach(id => {
+        const player = allPlayersById.get(id);
+        if (player) benchPlayersContainer.appendChild(player);
+      });
+
+      // Restore player stats
+      playerStats.clear();
+      for (const [playerId, stats] of Object.entries(savedState.playerStats)) {
+        const player = allPlayersById.get(playerId);
+        if (player) {
+          playerStats.set(player, stats);
+          updatePlayerDisplay(player);
+        }
       }
-    }
 
-    // Restore game state
-    timeLeft = savedState.timeLeft;
-    currentQuarter = savedState.currentQuarter;
-    isPaused = savedState.isPaused;
-    totalGoals = savedState.totalGoals;
-    updateTotalGoals();
+      // Restore game state
+      timeLeft = savedState.timeLeft;
+      currentQuarter = savedState.currentQuarter;
+      isPaused = savedState.isPaused;
+      totalGoals = savedState.totalGoals;
+      substitutionCount = savedState.substitutionCount || 0;
+      gameStartTime = savedState.gameStartTime || null;
+      updateTotalGoals();
+      updateStatsDashboard();
 
-    // Restore log
-    activityLog.innerHTML = savedState.activityLogHtml;
+      // Restore log
+      activityLog.innerHTML = savedState.activityLogHtml;
 
-    // If game had started, restore timer and UI state
-    if (savedState.hasStarted) {
-      document.querySelectorAll('.remove-player-button').forEach(b => b.style.display = 'none');
-      document.querySelectorAll('#field-players .player .score-button').forEach(b => b.style.display = 'inline-block');
+      // If game had started, restore timer and UI state
+      if (savedState.hasStarted) {
+        document.querySelectorAll('.remove-player-button').forEach(b => b.style.display = 'none');
+        document.querySelectorAll('#field-players .player .score-button').forEach(b => b.style.display = 'inline-block');
 
-      pauseButton.textContent = isPaused ? '▶️' : '⏸️';
+        pauseButton.textContent = isPaused ? '▶️' : '⏸️';
 
-      if (!isPaused) {
-        timer = setInterval(updateTimer, 1000);
-        document.querySelectorAll('#field-players .player').forEach(player => {
-          startPlayerTransition(player);
-        });
+        if (!isPaused) {
+          timer = setInterval(updateTimer, 1000);
+          document.querySelectorAll('#field-players .player').forEach(player => {
+            startPlayerTransition(player);
+          });
+        }
+        updateTimer();
       }
-      updateTimer();
+    } catch (error) {
+      console.error('Failed to load game state:', error);
+      alert('Failed to load previous game state. Starting fresh.');
+      localStorage.removeItem('lacrosseGameState');
     }
   }
 
