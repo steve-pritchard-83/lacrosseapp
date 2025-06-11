@@ -255,6 +255,80 @@ h2 {
   display: flex;
   gap: 8px;
   margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.voice-button {
+  background: rgba(74, 144, 226, 0.2);
+  border: 1px solid rgba(74, 144, 226, 0.3);
+  color: #4a90e2;
+  transition: all var(--transition-duration) var(--animation-timing);
+}
+
+.voice-button:hover {
+  background: rgba(74, 144, 226, 0.3);
+  transform: translateY(-1px);
+}
+
+.voice-button.active {
+  background: rgba(74, 144, 226, 0.4);
+  border-color: #4a90e2;
+  box-shadow: 0 0 8px rgba(74, 144, 226, 0.3);
+}
+
+.voice-button.disabled {
+  background: rgba(255, 77, 77, 0.2);
+  border-color: rgba(255, 77, 77, 0.3);
+  color: #ff4d4d;
+  cursor: not-allowed;
+}
+
+/* Voice settings modal */
+.voice-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.voice-modal-content {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 24px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: var(--card-shadow);
+}
+
+.voice-setting {
+  margin-bottom: 16px;
+}
+
+.voice-setting label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--text-secondary);
+  font-size: 0.9em;
+}
+
+.voice-setting input[type="range"] {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.voice-setting select {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
 }
 
 #activity-log {

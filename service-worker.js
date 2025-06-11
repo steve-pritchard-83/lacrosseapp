@@ -1,4 +1,4 @@
-const CACHE_NAME = 'steve-web-demo-cache-v1';
+const CACHE_NAME = 'lacrosse-bench-manager-v1.1';
 const urlsToCache = [
   './index.html',
   './styles.css',
@@ -28,5 +28,20 @@ self.addEventListener('fetch', event => {
         return fetch(event.request);
       }
     )
+  );
+});
+
+// Clean up old caches
+self.addEventListener('activate', event => {
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
   );
 }); 

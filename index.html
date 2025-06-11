@@ -41,6 +41,8 @@
       <div class="log-controls">
         <button id="export-log">📝 Export Log</button>
         <button id="undo-action">↩️ Undo</button>
+        <button id="voice-toggle" class="voice-button">🔊 Voice On</button>
+        <button id="voice-settings" class="voice-button" title="Voice Settings">⚙️</button>
       </div>
       <ul id="activity-log"></ul>
     </div>
@@ -68,6 +70,39 @@
       </div>
     </div>
   </div>
+
+  <!-- Voice Settings Modal -->
+  <div id="voice-modal" class="voice-modal">
+    <div class="voice-modal-content">
+      <h3>Voice Settings</h3>
+      <div class="voice-setting">
+        <label for="voice-rate">Speech Rate:</label>
+        <input type="range" id="voice-rate" min="0.5" max="2" step="0.1" value="1">
+        <span id="rate-value">1.0</span>
+      </div>
+      <div class="voice-setting">
+        <label for="voice-pitch">Speech Pitch:</label>
+        <input type="range" id="voice-pitch" min="0" max="2" step="0.1" value="1">
+        <span id="pitch-value">1.0</span>
+      </div>
+      <div class="voice-setting">
+        <label for="voice-volume">Volume:</label>
+        <input type="range" id="voice-volume" min="0" max="1" step="0.1" value="0.8">
+        <span id="volume-value">0.8</span>
+      </div>
+      <div class="voice-setting">
+        <label for="voice-select">Voice:</label>
+        <select id="voice-select">
+          <option value="">Default</option>
+        </select>
+      </div>
+      <div class="voice-setting">
+        <button id="test-voice">🎤 Test Voice</button>
+        <button id="close-voice-modal">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script src="script.js"></script>
   <script>
     if ('serviceWorker' in navigator) {

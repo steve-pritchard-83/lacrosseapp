@@ -40,6 +40,211 @@ function initDOMCache() {
 document.addEventListener('DOMContentLoaded', () => {
   initDOMCache();
   
+  // Voice Announcement System
+  let voiceEnabled = localStorage.getItem('voiceEnabled') !== 'false'; // Default to true
+  let availableVoices = [];
+  let selectedVoice = null;
+  let voiceSettings = {
+    rate: parseFloat(localStorage.getItem('voiceRate') || '1'),
+    pitch: parseFloat(localStorage.getItem('voicePitch') || '1'),
+    volume: parseFloat(localStorage.getItem('voiceVolume') || '0.8'),
+    voice: localStorage.getItem('selectedVoice') || ''
+  };
+
+  // Check Web Speech API support
+  const speechSupported = 'speechSynthesis' in window;
+  
+  function initVoiceSystem() {
+    const voiceToggle = document.getElementById('voice-toggle');
+    const voiceSettings = document.getElementById('voice-settings');
+    
+    if (!speechSupported) {
+      voiceToggle.textContent = '🔇 Not Supported';
+      voiceToggle.classList.add('disabled');
+      voiceToggle.disabled = true;
+      voiceSettings.disabled = true;
+      return;
+    }
+
+    // Load available voices
+    function loadVoices() {
+      availableVoices = speechSynthesis.getVoices();
+      const voiceSelect = document.getElementById('voice-select');
+      voiceSelect.innerHTML = '<option value="">Default</option>';
+      
+      availableVoices.forEach((voice, index) => {
+        const option = document.createElement('option');
+        option.value = index;
+        option.textContent = `${voice.name} (${voice.lang})`;
+        if (voice.name === voiceSettings.voice) {
+          option.selected = true;
+          selectedVoice = voice;
+        }
+        voiceSelect.appendChild(option);
+      });
+    }
+
+    // Load voices when they become available
+    if (availableVoices.length === 0) {
+      speechSynthesis.onvoiceschanged = loadVoices;
+    } else {
+      loadVoices();
+    }
+
+    updateVoiceToggleButton();
+    setupVoiceControls();
+  }
+
+  function updateVoiceToggleButton() {
+    const voiceToggle = document.getElementById('voice-toggle');
+    if (voiceEnabled) {
+      voiceToggle.textContent = '🔊 Voice On';
+      voiceToggle.classList.add('active');
+      voiceToggle.classList.remove('disabled');
+    } else {
+      voiceToggle.textContent = '🔇 Voice Off';
+      voiceToggle.classList.remove('active');
+      voiceToggle.classList.add('disabled');
+    }
+  }
+
+  function setupVoiceControls() {
+    // Voice toggle button
+    document.getElementById('voice-toggle').addEventListener('click', () => {
+      if (!speechSupported) return;
+      voiceEnabled = !voiceEnabled;
+      localStorage.setItem('voiceEnabled', voiceEnabled.toString());
+      updateVoiceToggleButton();
+      
+      if (voiceEnabled) {
+        speak('Voice announcements enabled');
+      }
+    });
+
+    // Voice settings button
+    document.getElementById('voice-settings').addEventListener('click', () => {
+      if (!speechSupported) return;
+      document.getElementById('voice-modal').style.display = 'flex';
+      updateVoiceSettingsDisplay();
+    });
+
+    // Close modal
+    document.getElementById('close-voice-modal').addEventListener('click', () => {
+      document.getElementById('voice-modal').style.display = 'none';
+    });
+
+    // Voice settings controls
+    const rateSlider = document.getElementById('voice-rate');
+    const pitchSlider = document.getElementById('voice-pitch');
+    const volumeSlider = document.getElementById('voice-volume');
+    const voiceSelect = document.getElementById('voice-select');
+
+    rateSlider.addEventListener('input', (e) => {
+      voiceSettings.rate = parseFloat(e.target.value);
+      document.getElementById('rate-value').textContent = e.target.value;
+      localStorage.setItem('voiceRate', e.target.value);
+    });
+
+    pitchSlider.addEventListener('input', (e) => {
+      voiceSettings.pitch = parseFloat(e.target.value);
+      document.getElementById('pitch-value').textContent = e.target.value;
+      localStorage.setItem('voicePitch', e.target.value);
+    });
+
+    volumeSlider.addEventListener('input', (e) => {
+      voiceSettings.volume = parseFloat(e.target.value);
+      document.getElementById('volume-value').textContent = e.target.value;
+      localStorage.setItem('voiceVolume', e.target.value);
+    });
+
+    voiceSelect.addEventListener('change', (e) => {
+      if (e.target.value === '') {
+        selectedVoice = null;
+        voiceSettings.voice = '';
+      } else {
+        selectedVoice = availableVoices[parseInt(e.target.value)];
+        voiceSettings.voice = selectedVoice.name;
+      }
+      localStorage.setItem('selectedVoice', voiceSettings.voice);
+    });
+
+    // Test voice button
+    document.getElementById('test-voice').addEventListener('click', () => {
+      speak('This is a test of the voice announcement system. Player substitution ready.');
+    });
+
+    // Close modal when clicking outside
+    document.getElementById('voice-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'voice-modal') {
+        document.getElementById('voice-modal').style.display = 'none';
+      }
+    });
+  }
+
+  function updateVoiceSettingsDisplay() {
+    document.getElementById('voice-rate').value = voiceSettings.rate;
+    document.getElementById('voice-pitch').value = voiceSettings.pitch;
+    document.getElementById('voice-volume').value = voiceSettings.volume;
+    document.getElementById('rate-value').textContent = voiceSettings.rate.toFixed(1);
+    document.getElementById('pitch-value').textContent = voiceSettings.pitch.toFixed(1);
+    document.getElementById('volume-value').textContent = voiceSettings.volume.toFixed(1);
+  }
+
+  function speak(text, priority = 'normal') {
+    if (!speechSupported || !voiceEnabled) return;
+
+    // Cancel current speech if high priority
+    if (priority === 'high') {
+      speechSynthesis.cancel();
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = voiceSettings.rate;
+    utterance.pitch = voiceSettings.pitch;
+    utterance.volume = voiceSettings.volume;
+    
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
+    }
+
+    // Add slight delay to ensure previous speech is cancelled
+    setTimeout(() => {
+      speechSynthesis.speak(utterance);
+    }, priority === 'high' ? 100 : 0);
+  }
+
+  function announceSubstitution(playerName, action, isGoalie = false) {
+    const position = isGoalie ? 'goalie' : 'player';
+    if (action === 'field') {
+      speak(`${playerName} entering the field`, 'high');
+    } else {
+      speak(`${playerName} coming off the field`, 'high');
+    }
+  }
+
+  function announceGoal(playerName) {
+    speak(`Goal scored by ${playerName}!`, 'high');
+  }
+
+  function announceGameEvent(event, detail = '') {
+    const announcements = {
+      'game_start': `Game starting. ${getQuarterName(currentQuarter)} begins`,
+      'quarter_change': `${getQuarterName(currentQuarter)} begins`,
+      'game_pause': 'Game paused',
+      'game_resume': 'Game resumed',
+      'game_end': 'Game finished',
+      'timeout': 'Timeout called',
+      'substitution_needed': detail ? `Recommend ${detail} for substitution` : 'Substitution recommended'
+    };
+
+    if (announcements[event]) {
+      speak(announcements[event], event.includes('start') || event.includes('quarter') ? 'high' : 'normal');
+    }
+  }
+
+  // Initialize voice system
+  initVoiceSystem();
+  
   const fieldPlayers = DOM_CACHE.fieldPlayers;
   const benchPlayers = DOM_CACHE.benchPlayers;
   const activityLog = DOM_CACHE.activityLog;
@@ -140,9 +345,11 @@ document.addEventListener('DOMContentLoaded', () => {
         currentQuarter++;
         timeLeft = 600; // Reset to 10 minutes for next quarter
         addLogEntry(`${getQuarterName(currentQuarter)} begins`, 'field');
+        announceGameEvent('quarter_change');
       } else if (timeLeft === 0) {
         clearInterval(timer);
         addLogEntry('Game finished', 'field');
+        announceGameEvent('game_end');
       }
     }
   }
@@ -328,6 +535,9 @@ document.addEventListener('DOMContentLoaded', () => {
     gameStartTime = Date.now();
     addLogEntry(`${getQuarterName(currentQuarter)} begins`, 'field');
     
+    // Voice announcement for game start
+    announceGameEvent('game_start');
+    
     // Hide remove player buttons
     document.querySelectorAll('.remove-player-button').forEach(button => {
       button.style.display = 'none';
@@ -446,6 +656,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Log the movement with player number
     addLogEntry(`${playerName} moved to ${!isOnField ? 'field' : 'bench'}.`, !isOnField ? 'field' : 'bench');
     
+    // Voice announcement for substitution
+    const isGoalie = playerName.toLowerCase().includes('ben') || playerName.toLowerCase().includes('goalie');
+    announceSubstitution(playerName.split(' (')[0], !isOnField ? 'field' : 'bench', isGoalie);
+    
     // Track substitutions
     if (timer) { // Only count if game has started
       substitutionCount++;
@@ -460,6 +674,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (benchPlayers.length > 0) {
       const recommendedPlayer = benchPlayers[0].querySelector('.player-name').textContent.trim();
       alert(`Recommend ${recommendedPlayer} to come on the field.`);
+      
+      // Voice announcement for substitution recommendation
+      announceGameEvent('substitution_needed', recommendedPlayer.split(' (')[0]);
     }
   }
 
@@ -507,6 +724,10 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       addLogEntry(`${playerName} scored a goal!`, 'goal');
+      
+      // Voice announcement for goal
+      announceGoal(playerName.split(' (')[0]);
+      
       totalGoals++;
       updateTotalGoals();
       updateStatsDashboard();
@@ -628,6 +849,9 @@ document.addEventListener('DOMContentLoaded', () => {
     isPaused = !isPaused;
     pauseButton.textContent = isPaused ? '▶️' : '⏸️';
     addLogEntry(`Game ${isPaused ? 'paused' : 'resumed'}`, 'field');
+    
+    // Voice announcement for pause/resume
+    announceGameEvent(isPaused ? 'game_pause' : 'game_resume');
 
     document.querySelectorAll('#field-players .player').forEach(player => {
       const stats = playerStats.get(player);
