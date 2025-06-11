@@ -78,6 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
           playerStats.delete(player);
           player.remove();
           addLogEntry(`${playerName} was removed from the game.`, 'bench');
+          saveGameState();
         }
       });
 
@@ -271,6 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
         scoreButton.style.display = 'inline-block';
       }
     });
+    saveGameState();
   }
 
   function handlePlayerClick(e) {
@@ -370,6 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Log the movement with player number
     addLogEntry(`${playerName} moved to ${!isOnField ? 'field' : 'bench'}.`, !isOnField ? 'field' : 'bench');
+    saveGameState();
   }
 
   function recommendPlayer() {
@@ -427,6 +430,7 @@ document.addEventListener('DOMContentLoaded', () => {
       totalGoals++;
       updateTotalGoals();
       createRandomFireworks();
+      saveGameState();
     });
   });
 
@@ -484,6 +488,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Remove the log entry for this action
       if (lastLogEntry) activityLog.removeChild(lastLogEntry);
     }
+    saveGameState();
   }
 
   document.querySelectorAll('.player').forEach(player => {
@@ -559,5 +564,118 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     });
-  }); 
+    saveGameState();
+  });
+
+  // --- State Persistence ---
+
+  function saveGameState() {
+    const fieldPlayersData = Array.from(document.querySelectorAll('#field-players .player')).map(p => p.id);
+    const benchPlayersData = Array.from(document.querySelectorAll('#bench-players .player')).map(p => p.id);
+
+    const playerStatsData = {};
+    playerStats.forEach((stats, player) => {
+      playerStatsData[player.id] = stats;
+    });
+
+    const state = {
+      hasStarted: !!timer,
+      fieldPlayers: fieldPlayersData,
+      benchPlayers: benchPlayersData,
+      playerStats: playerStatsData,
+      timeLeft,
+      currentQuarter,
+      isPaused,
+      totalGoals,
+      activityLogHtml: activityLog.innerHTML,
+    };
+
+    localStorage.setItem('lacrosseGameState', JSON.stringify(state));
+  }
+
+  function loadGameState() {
+    const savedStateJSON = localStorage.getItem('lacrosseGameState');
+    if (!savedStateJSON) return;
+
+    const savedState = JSON.parse(savedStateJSON);
+
+    const allPlayersById = new Map();
+    document.querySelectorAll('.player').forEach(p => allPlayersById.set(p.id, p));
+
+    // Correctly handle removed players
+    const savedPlayerIds = new Set([...savedState.fieldPlayers, ...savedState.benchPlayers]);
+    allPlayersById.forEach((player, id) => {
+      if (!savedPlayerIds.has(id)) {
+        player.remove();
+      }
+    });
+
+    // Restore player positions
+    const fieldPlayersContainer = document.getElementById('field-players');
+    fieldPlayersContainer.innerHTML = '';
+    savedState.fieldPlayers.forEach(id => {
+      const player = allPlayersById.get(id);
+      if (player) fieldPlayersContainer.appendChild(player);
+    });
+
+    const benchPlayersContainer = document.getElementById('bench-players');
+    benchPlayersContainer.innerHTML = '';
+    savedState.benchPlayers.forEach(id => {
+      const player = allPlayersById.get(id);
+      if (player) benchPlayersContainer.appendChild(player);
+    });
+
+    // Restore player stats
+    playerStats.clear();
+    for (const [playerId, stats] of Object.entries(savedState.playerStats)) {
+      const player = allPlayersById.get(playerId);
+      if (player) {
+        playerStats.set(player, stats);
+        updatePlayerDisplay(player);
+      }
+    }
+
+    // Restore game state
+    timeLeft = savedState.timeLeft;
+    currentQuarter = savedState.currentQuarter;
+    isPaused = savedState.isPaused;
+    totalGoals = savedState.totalGoals;
+    updateTotalGoals();
+
+    // Restore log
+    activityLog.innerHTML = savedState.activityLogHtml;
+
+    // If game had started, restore timer and UI state
+    if (savedState.hasStarted) {
+      document.querySelectorAll('.remove-player-button').forEach(b => b.style.display = 'none');
+      document.querySelectorAll('#field-players .player .score-button').forEach(b => b.style.display = 'inline-block');
+
+      pauseButton.textContent = isPaused ? '▶️' : '⏸️';
+
+      if (!isPaused) {
+        timer = setInterval(updateTimer, 1000);
+        document.querySelectorAll('#field-players .player').forEach(player => {
+          startPlayerTransition(player);
+        });
+      }
+      updateTimer();
+    }
+  }
+
+  // Add Reset Button
+  const resetButton = document.createElement('button');
+  resetButton.id = 'reset-game';
+  resetButton.textContent = 'Reset Game';
+  resetButton.style.marginLeft = '10px';
+  document.getElementById('export-log').after(resetButton);
+
+  resetButton.addEventListener('click', () => {
+    if (confirm('Are you sure you want to reset the game? This will erase all progress.')) {
+      localStorage.removeItem('lacrosseGameState');
+      if (timer) clearInterval(timer);
+      window.location.reload();
+    }
+  });
+
+  loadGameState();
 }); 
