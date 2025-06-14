@@ -1,0 +1,96 @@
+.player, .goalie {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  color: var(--off-white);
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  cursor: grab;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  width: 120px;
+  text-align: center;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.player:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.goalie {
+  cursor: not-allowed;
+  background: rgba(0,0,0,0.4);
+  width: auto;
+  padding: 0.5rem 1rem;
+}
+
+.playerName {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.playerStats {
+  font-size: 0.8rem;
+  opacity: 0.9;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.scoreButton {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: none;
+  border: none;
+  color: var(--off-white);
+  font-size: 1.2rem;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.player:hover .scoreButton {
+  opacity: 1;
+}
+
+.scoreButton:hover {
+  transform: scale(1.2);
+  color: var(--primary-orange);
+}
+
+.onField {
+  /* On-field players have a subtle border to distinguish them */
+  border-left: 4px solid var(--primary-orange);
+}
+
+.recommended {
+  box-shadow: 0 0 12px 3px var(--primary-orange);
+  border: 1px solid var(--primary-orange);
+}
+
+@keyframes greenToYellowToRed {
+  0% { background-color: rgba(46, 204, 113, 0.2); }      /* Greenish Glass */
+  50% { background-color: rgba(241, 196, 15, 0.3); }    /* Yellowish Glass */
+  100% { background-color: rgba(231, 76, 60, 0.4); }      /* Reddish Glass */
+}
+
+@keyframes flashRed {
+    0%, 100% { background-color: rgba(231, 76, 60, 0.4); box-shadow: 0 0 12px 3px rgba(231, 76, 60, 0.7); }
+    50% { background-color: rgba(231, 76, 60, 0.6); box-shadow: 0 0 18px 5px rgba(231, 76, 60, 1); }
+}
+
+.timedAnimation {
+    animation: greenToYellowToRed 30s linear forwards,
+}
+
+.timedAnimation.is-flashing {
+    animation: flashRed 1s infinite;
+} 

@@ -1,0 +1,591 @@
+:root {
+  --dark-bg: #1a1b1f;
+  --card-bg: #27282d;
+  --card-hover: #2d2e34;
+  --accent-red: #ff4d4d;
+  --accent-orange: #ff7849;
+  --text-primary: #ffffff;
+  --text-secondary: #8c8c8c;
+  --border-radius: 16px;
+  --card-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  
+  /* Performance optimizations */
+  --player-width: 140px;
+  --player-padding: 8px 12px;
+  --player-border-radius: 12px;
+  --transition-duration: 0.2s;
+  --animation-timing: ease-in-out;
+  
+  /* Color gradients for better performance */
+  --gradient-green: linear-gradient(135deg, #2ecc71, #27ae60);
+  --gradient-yellow: linear-gradient(135deg, #f1c40f, #f39c12);
+  --gradient-red: linear-gradient(135deg, #e74c3c, #c0392b);
+  --gradient-flash-red: linear-gradient(135deg, #ff0000, #cc0000);
+  --gradient-flash-white: linear-gradient(135deg, #ffffff, #f0f0f0);
+  --primary-orange: #FFA500;
+  --light-orange: #FFC04D;
+  --dark-orange: #FF8C00;
+  --off-white: #F5F5F5;
+  --light-grey: #D3D3D3;
+  --medium-grey: #808080;
+  --dark-grey: #333333;
+  --glass-bg: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-image: url('/background.svg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  color: var(--off-white);
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden; /* Prevent scrolling of the body */
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+  overflow-y: auto; /* Allow scrolling within the app */
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  background: rgba(0,0,0,0.1);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--primary-orange);
+  text-shadow: 1px 1px 2px var(--dark-grey);
+}
+
+h1, h2, h3, p {
+  margin: 0;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Base styles for drag and drop placeholder */
+.placeholder {
+    background-color: rgba(255, 255, 255, 0.1);
+    border: 2px dashed #fff;
+    border-radius: var(--player-border-radius);
+    height: 50px; /* Example height */
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+h1 {
+  text-align: center;
+  font-size: 2em;
+  background: linear-gradient(135deg, #4a90e2, #357abd);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+  text-align: center;
+  color: #666;
+  font-size: 0.9em;
+}
+
+.widget {
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.field, .bench {
+  min-height: 120px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px;
+}
+
+#bench, #field {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.dropzone {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  padding: 12px;
+  border-radius: 8px;
+  min-height: 60px;
+}
+
+#field-players {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+#bench-players {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+h2 {
+  font-size: 1.2em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#timer {
+  font-size: 0.9em;
+  color: #999;
+  font-weight: normal;
+}
+
+#goalie {
+  margin: 0 auto 16px auto;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  width: fit-content;
+}
+
+.player {
+  /* Default and base state is green - optimized with CSS variables */
+  background: var(--gradient-green);
+  color: white;
+  padding: var(--player-padding);
+  border-radius: var(--player-border-radius);
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9em;
+  box-shadow: 0 2px 8px rgba(46, 204, 113, 0.2);
+  width: var(--player-width);
+  position: relative;
+  justify-content: space-between;
+  overflow: hidden;
+  /* Add hardware acceleration for better performance */
+  transform: translateZ(0);
+  will-change: background, transform;
+  transition: transform var(--transition-duration) var(--animation-timing);
+}
+
+/* Ensure text and buttons are on the top layer */
+.player > * {
+  position: relative;
+  z-index: 2;
+}
+
+.player::before,
+.player::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 12px;
+  opacity: 0; /* All layers start hidden */
+}
+
+/* Yellow Layer (blends on top of green base) - optimized */
+.player::before {
+  background: var(--gradient-yellow);
+  z-index: 0;
+  will-change: opacity;
+}
+
+/* Red Layer (blends on top of yellow) - optimized */
+.player::after {
+  background: var(--gradient-red);
+  z-index: 1;
+  will-change: opacity;
+}
+
+/* --- Animations --- */
+
+/* Green to Yellow: Fade in the yellow layer over 15s */
+.player.g-y-r-transition::before {
+  animation: fade-in 15s linear forwards;
+}
+
+/* Yellow to Red: Fade in the red layer from 15s to 30s */
+.player.g-y-r-transition::after {
+  animation: fade-in-delayed 30s linear forwards;
+}
+
+@keyframes fade-in {
+  to { opacity: 1; }
+}
+
+@keyframes fade-in-delayed {
+  0% { opacity: 0; }
+  50% { opacity: 0; } /* 15s delay */
+  100% { opacity: 1; }
+}
+
+
+/* --- Flashing Red State --- */
+.player.red {
+  /* Stop the other animations and remove pseudo-elements */
+  animation: flash 0.8s infinite;
+}
+
+.player.red::before, .player.red::after {
+  animation: none;
+  display: none;
+}
+
+@keyframes flash {
+  0%, 100% { 
+    background: var(--gradient-red);
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+  }
+  50% { 
+    background: var(--gradient-flash-white);
+    box-shadow: 0 0 30px rgba(255, 255, 255, 0.9);
+  }
+}
+
+.score-button {
+  display: none;
+  padding: 4px 8px;
+  font-size: 12px;
+  background-color: rgba(255, 255, 255, 0.15);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  margin-left: auto;
+  backdrop-filter: blur(4px);
+  order: 2;
+}
+
+.player.on-field .score-button {
+  display: flex;
+}
+
+.score-button:hover {
+  background-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+#log {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 24px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+#activity-log {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+#activity-log li {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 0.9em;
+  color: #ccc;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#activity-log li:first-child {
+  padding-top: 0;
+}
+
+#activity-log li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+/* Scrollbar styling for a modern look */
+#activity-log::-webkit-scrollbar {
+  width: 6px;
+}
+
+#activity-log::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+#activity-log::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 3px;
+}
+
+#activity-log::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+
+/* Log Icons */
+.icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.field-icon { background-color: #2980b9; }
+.bench-icon { background-color: #f39c12; }
+.goal-icon { 
+  background-color: #27ae60;
+  box-shadow: 0 0 8px rgba(46, 204, 113, 0.7);
+}
+
+/* Controls section */
+.log-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 16px;
+}
+
+.log-controls button, #reset-game {
+  background: #333;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9em;
+}
+
+.log-controls button:hover, #reset-game:hover {
+  background: #444;
+  transform: translateY(-1px);
+}
+
+/* Stats Dashboard */
+.stats-section {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 16px;
+  backdrop-filter: blur(8px);
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.stat-card h3 {
+  margin: 0 0 8px 0;
+  font-size: 1em;
+  color: #aaa;
+}
+
+.stat-card p {
+  margin: 0;
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+/* Fireworks for Goals */
+.firework {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background-color: #fff;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0;
+  animation: launch 1s ease-out forwards;
+}
+
+.spark {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  background: gold;
+  border-radius: 50%;
+  animation: fly 0.5s ease-out forwards;
+  opacity: 1;
+}
+
+@keyframes launch {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(-200px); opacity: 0; }
+}
+
+@keyframes fly {
+  to {
+    transform: translate(var(--x), var(--y));
+    opacity: 0;
+  }
+}
+
+/* Voice settings modal */
+.voice-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.voice-modal-content {
+  background: var(--card-bg);
+  padding: 24px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
+  width: 90%;
+  max-width: 400px;
+}
+
+.voice-modal-content h3 {
+  margin-top: 0;
+  text-align: center;
+}
+
+.voice-setting {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.voice-setting label {
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+}
+
+.voice-setting input[type="range"],
+.voice-setting select {
+  width: 100%;
+}
+
+.voice-setting button {
+  background: #444;
+  border: none;
+  padding: 10px;
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.voice-setting button:hover {
+  background: #555;
+}
+
+.voice-setting div {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.voice-button.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.voice-button.active {
+  background: #27ae60;
+}
+.player-name {
+    flex-grow: 1;
+}
+
+.player-stats {
+    font-size: 0.8em;
+    color: rgba(255, 255, 255, 0.8);
+    margin-left: 8px;
+}
+#pause-timer {
+  background: #333;
+  color: #fff;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.8em;
+}
+
+#pause-timer:hover {
+  background: #444;
+}
+.remove-player-button:hover {
+  color: #e74c3c;
+  transform: scale(1.2);
+}
+body, h1, h2, p, div {
+    will-change: auto;
+}
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+.player, .log-controls button, .stat-card {
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.player:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+}
+
+#log h2, .stats-section h2 {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 12px;
+}
+
+h2 span {
+    font-weight: normal;
+    font-size: 0.8em;
+    color: #999;
+    margin-left: auto;
+}
+#log h2 span {
+  margin-left: 8px;
+} 

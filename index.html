@@ -1,119 +1,17 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#1c1c1e">
-  <link rel="manifest" href="manifest.json">
-  <title>Lacrosse Bench Manager</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <div class="container">
-    <h1>Lacrosse Support App</h1>
-    <p class="subtitle">(add 4 players to field to start game)</p>
-
-    <div id="bench">
-      <h2>Bench</h2>
-      <div id="bench-players" class="dropzone">
-        <div id="player-callum" class="player" draggable="true"><span class="player-name">Callum (07)</span><button class="score-button">🥍</button></div>
-        <div id="player-ethan" class="player" draggable="true"><span class="player-name">Ethan (10)</span><button class="score-button">🥍</button></div>
-        <div id="player-oliver" class="player" draggable="true"><span class="player-name">Oliver (13)</span><button class="score-button">🥍</button></div>
-        <div id="player-abraham" class="player" draggable="true"><span class="player-name">Abraham (16)</span><button class="score-button">🥍</button></div>
-        <div id="player-henry" class="player" draggable="true"><span class="player-name">Henry (02)</span><button class="score-button">🥍</button></div>
-        <div id="player-henryb" class="player" draggable="true"><span class="player-name">Henry B (04)</span><button class="score-button">🥍</button></div>
-        <div id="player-arlo" class="player" draggable="true"><span class="player-name">Arlo (09)</span><button class="score-button">🥍</button></div>
-        <div id="player-newkid" class="player" draggable="true"><span class="player-name">New Kid (18)</span><button class="score-button">🥍</button></div>
-      </div>
-    </div>
-
-    <div id="field">
-      <h2>Field <span id="timer">(1st Quarter 10:00)</span> <button id="pause-timer">⏸️</button></h2>
-      <div id="goalie" class="player" draggable="true"><span class="player-name">Goalie Ben (01)</span><button class="score-button">🥍</button></div>
-      <h2>Field Players</h2>
-      <div id="field-players" class="dropzone">
-      </div>
-    </div>
-
-    <div id="log">
-      <h2>Activity Log <span>(Total Goals: 0)</span></h2>
-      <div class="log-controls">
-        <button id="export-log">📝 Export Log</button>
-        <button id="undo-action">↩️ Undo</button>
-        <button id="voice-toggle" class="voice-button">🔊 Voice On</button>
-        <button id="voice-settings" class="voice-button" title="Voice Settings">⚙️</button>
-      </div>
-      <ul id="activity-log"></ul>
-    </div>
-
-    <!-- New Statistics Dashboard -->
-    <div id="stats-dashboard" class="stats-section">
-      <h2>📊 Game Statistics</h2>
-      <div class="stats-grid">
-        <div class="stat-card">
-          <h3>Top Scorer</h3>
-          <p id="top-scorer">-</p>
-        </div>
-        <div class="stat-card">
-          <h3>Most Field Time</h3>
-          <p id="most-field-time">-</p>
-        </div>
-        <div class="stat-card">
-          <h3>Game Duration</h3>
-          <p id="game-duration">Not Started</p>
-        </div>
-        <div class="stat-card">
-          <h3>Substitutions</h3>
-          <p id="substitution-count">0</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Voice Settings Modal -->
-  <div id="voice-modal" class="voice-modal">
-    <div class="voice-modal-content">
-      <h3>Voice Settings</h3>
-      <div class="voice-setting">
-        <label for="voice-rate">Speech Rate:</label>
-        <input type="range" id="voice-rate" min="0.5" max="2" step="0.1" value="1">
-        <span id="rate-value">1.0</span>
-      </div>
-      <div class="voice-setting">
-        <label for="voice-pitch">Speech Pitch:</label>
-        <input type="range" id="voice-pitch" min="0" max="2" step="0.1" value="1">
-        <span id="pitch-value">1.0</span>
-      </div>
-      <div class="voice-setting">
-        <label for="voice-volume">Volume:</label>
-        <input type="range" id="voice-volume" min="0" max="1" step="0.1" value="0.8">
-        <span id="volume-value">0.8</span>
-      </div>
-      <div class="voice-setting">
-        <label for="voice-select">Voice:</label>
-        <select id="voice-select">
-          <option value="">Default</option>
-        </select>
-      </div>
-      <div class="voice-setting">
-        <button id="test-voice">🎤 Test Voice</button>
-        <button id="close-voice-modal">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js').then(registration => {
-          console.log('ServiceWorker registration successful with scope: ', registration.scope);
-        }, err => {
-          console.log('ServiceWorker registration failed: ', err);
-        });
-      });
-    }
-  </script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ff9800" />
+    <title>Lacrosse Field Manager</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon-180x180.png" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>
